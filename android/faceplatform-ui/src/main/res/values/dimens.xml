@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="collect_bottom_font">12sp</dimen>
+    <dimen name="agreement_content_font">14sp</dimen>
+    <dimen name="agreement_title_font">18sp</dimen>
+</resources>
