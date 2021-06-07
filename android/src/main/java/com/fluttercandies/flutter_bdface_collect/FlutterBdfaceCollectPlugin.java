@@ -4,6 +4,7 @@ import android.app.Activity;
 
 import androidx.annotation.NonNull;
 
+import com.baidu.idl.face.platform.FaceConfig;
 import com.baidu.idl.face.platform.FaceSDKManager;
 import com.baidu.idl.face.platform.listener.IInitCallback;
 
@@ -21,10 +22,6 @@ import io.flutter.plugin.common.MethodChannel.Result;
  * FlutterBdfaceCollectPlugin
  */
 public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
-    /// The MethodChannel that will the communication between Flutter and native Android
-    ///
-    /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-    /// when the Flutter Engine is detached from the Activity
     private MethodChannel channel;
     private Activity activity;
 
@@ -43,6 +40,8 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
             case MethodConstants.Init:
                 init(call.arguments, result);
                 break;
+            case MethodConstants.Collect:
+
             default:
                 result.notImplemented();
         }
@@ -70,6 +69,7 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
     public void onDetachedFromActivity() {
     }
 
+    /// 项目初始化
     private void init(Object arguments, final Result result) {
         @SuppressWarnings("unchecked")
         HashMap<Object, Object> argumentsMap = (HashMap<Object, Object>) arguments;
@@ -90,5 +90,11 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         FaceSDKManager.getInstance().initialize(activity, licenseId, licenseFileName, iInitCallback);
     }
 
+    /// 采集！
+    private void collect(Object arguments, final Result result) {
+        FaceConfig config = FaceSDKManager.getInstance().getFaceConfig();
 
+        @SuppressWarnings("unchecked")
+        HashMap<Object, Object> argumentsMap = (HashMap<Object, Object>) arguments;
+    }
 }
