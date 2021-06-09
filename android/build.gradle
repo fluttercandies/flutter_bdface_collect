@@ -8,29 +8,27 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath 'com.android.tools.build:gradle:3.5.0'
     }
 }
 
-// 定义一个方法, 用于获取当前moudle的dir
-def getCurrentProjectDir() {
-    String result = ""
-    rootProject.allprojects { project ->
+String flutterBdfaceCollectProjectDir = ""
+// 获取当前moudle的dir
+rootProject.allprojects { project ->
+    try {
         if (project.properties.get("identityPath").toString() == ":flutter_bdface_collect") {
-            result = project.properties.get("projectDir").toString()
+            flutterBdfaceCollectProjectDir = project.properties.get("projectDir").toString()
         }
+    } catch (e) {
     }
-    return result
 }
-
 rootProject.allprojects {
     // 这个闭包是循环所有project, 我们让这个仓库可以被所有module找到
-    def dir = getCurrentProjectDir()
     repositories {
         google()
         jcenter()
         maven { // 添加这个指向本地的仓库目录
-            url "$dir/libs"
+            url "$flutterBdfaceCollectProjectDir/libs"
         }
     }
 }
@@ -47,6 +45,5 @@ android {
 
 
 dependencies {
-    implementation "com.baidu.idl:faceplatform:4.1.0"
-
+    implementation "com.baidu.idl.face:platform:4.1"
 }

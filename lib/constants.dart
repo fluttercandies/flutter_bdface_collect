@@ -5,4 +5,7 @@ class MethodConstants {
 
   /// 初始化
   static const String Init = 'Init';
+
+  /// 采集人脸
+  static const String Collect = 'Collect';
 }

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="20dp"
+    android:layout_marginRight="20dp"
+    android:background="@drawable/bg_round_time_out">
+
+    <ImageView
+        android:id="@+id/image_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="38dp"
+        android:src="@mipmap/icon_overtime"/>
+
+    <TextView
+        android:id="@+id/text_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="人脸采集超时"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/image_icon"
+        android:layout_marginTop="16dp"/>
+
+    <View
+        android:id="@+id/view_line1"
+        android:layout_width="match_parent"
+        android:layout_height="0.3dp"
+        android:layout_below="@id/text_title"
+        android:layout_marginTop="30dp"
+        android:background="#E0E0E0"/>
+
+    <Button
+        android:id="@+id/btn_dialog_recollect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/view_line1"
+        android:background="@color/background"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:text="重新采集"
+        android:textSize="18sp"
+        android:textColor="#00BAF2"/>
+
+    <View
+        android:id="@+id/view_line2"
+        android:layout_width="match_parent"
+        android:layout_height="0.3dp"
+        android:layout_below="@id/btn_dialog_recollect"
+        android:background="#E0E0E0"/>
+
+    <Button
+        android:id="@+id/btn_dialog_return"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/view_line2"
+        android:background="@color/background"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:text="取消"
+        android:textColor="#666666"
+        android:textSize="18sp" />
+</RelativeLayout>
