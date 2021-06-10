@@ -2,7 +2,9 @@
     package="com.fluttercandies.flutter_bdface_collect_example">
    <application
         android:label="flutter_bdface_collect_example"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+            android:requestLegacyExternalStorage="true"
+            android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

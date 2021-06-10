@@ -4,7 +4,7 @@ class FaceConfig {
   late int minFaceSize;
 
   /// 非人脸阈值	0.6	0~1.0
-  late double notFaceValue;
+  late double notFace;
 
   /// 图片最小光照阈值	宽松：30、正常：40、严格：60	0-255
   late double brightness;
@@ -77,7 +77,7 @@ class FaceConfig {
 
   FaceConfig(
       {this.minFaceSize = 200,
-      this.notFaceValue = 0.6,
+      this.notFace = 0.6,
       this.brightness = 40,
       this.brightnessMax = 220,
       this.blurness = 0.6,
@@ -103,7 +103,7 @@ class FaceConfig {
       this.livenessRandom = true,
       this.sund = true,
       Set<LivenessType>? livenessTypes})
-      : assert(0.1 <= notFaceValue && notFaceValue <= 1.0),
+      : assert(0.1 <= notFace && notFace <= 1.0),
         assert(0 <= brightness && brightness <= 255),
         assert(0 <= brightnessMax && brightnessMax <= 255),
         assert(0 <= blurness && blurness <= 1.0),
@@ -128,7 +128,7 @@ class FaceConfig {
 
   Map<String, dynamic> toMap() => {
         'minFaceSize': this.minFaceSize,
-        'notFaceValue': this.notFaceValue,
+        'notFace': this.notFace,
         'brightness': this.brightness,
         'brightnessMax': this.brightnessMax,
         'blurness': this.blurness,
@@ -152,7 +152,7 @@ class FaceConfig {
         'faceClosedRatio': this.faceClosedRatio,
         'secType': this.secType,
         'livenessTypes': this.livenessTypes.map((v) => v.code).toList(),
-        'livenessRandom': this.livenessRandom,
+        'livenessRandom': livenessRandom && livenessTypes.isNotEmpty,
         'sund': this.sund,
       };
 }

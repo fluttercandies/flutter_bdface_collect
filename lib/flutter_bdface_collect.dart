@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'constants.dart';
 import 'model.dart';
@@ -12,7 +14,8 @@ class FlutterBdfaceCollect extends _ServiceApi {
 }
 
 class _ServiceApi {
-  final MethodChannel _methodChannel = MethodChannel('flutter_bdface_collect');
+  static const String _ChannelName = 'com.fluttercandies.bdface_collect';
+  final MethodChannel _methodChannel = MethodChannel(_ChannelName);
 
   Future<String?> get platformVersion async {
     final String? version = await _methodChannel
@@ -21,18 +24,35 @@ class _ServiceApi {
   }
 
   /// 初始化
-  Future<String?> init(String licenseId) async {
+  Future<String?> init(String licenseId, {FaceConfig? config}) async {
+    var s = await Permission.camera.status;
+    if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
+      s = await Permission.camera.request();
+      if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
+        return "errCode: OTHER_ERROR, errMsg: 无相机使用权限";
+      }
+    }
+    if (Platform.isAndroid) {
+      s = await Permission.storage.status;
+      if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
+        s = await Permission.storage.request();
+        if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
+          return "errCode: OTHER_ERROR, errMsg: 无本地存储权限";
+        }
+      }
+    }
+    var configMap = config?.toMap() ?? FaceConfig().toMap();
+    configMap['licenseId'] = licenseId;
     final String? err = await _methodChannel.invokeMethod<String>(
-        MethodConstants.Init, licenseId);
+        MethodConstants.Init, configMap);
     return err;
   }
 
   /// 采集人脸
-  Future<CollectRresult> collect(FaceConfig config) async {
-    final Map<String, dynamic>? result = await _methodChannel
-        .invokeMapMethod<String, dynamic>(MethodConstants.Collect);
+  Future<CollectRresult> collect({FaceConfig? config}) async {
+    final Map<String, dynamic>? result = await _methodChannel.invokeMapMethod(
+        MethodConstants.Collect, config?.toMap());
     if (result == null) {
-      print("result 为空");
       return CollectRresult(error: "取消识别");
     }
     return CollectRresult.fromMap(result);
