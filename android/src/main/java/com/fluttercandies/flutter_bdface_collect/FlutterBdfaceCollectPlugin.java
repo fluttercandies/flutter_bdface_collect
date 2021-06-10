@@ -105,6 +105,7 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
             HashMap<String, Object> argumentsMap = (HashMap<String, Object>) arguments;
             setFaceConfig(argumentsMap);
         }
+        Intent intent;
         if (FaceSDKManager.getInstance().getFaceConfig().getLivenessTypeList().isEmpty()) {
             intent = new Intent(activity, FaceDetectActivity.class);
         } else {
