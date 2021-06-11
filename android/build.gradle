@@ -27,9 +27,8 @@ rootProject.allprojects {
     repositories {
         google()
         jcenter()
-        maven { // 添加这个指向本地的仓库目录
-            url "$flutterBdfaceCollectProjectDir/libs"
-        }
+        // 添加这个指向本地的仓库目录
+        maven { url "$flutterBdfaceCollectProjectDir/libs" }
     }
 }
 
@@ -41,11 +40,16 @@ android {
     defaultConfig {
         minSdkVersion 16
     }
+
     sourceSets {
         main.jniLibs.srcDir 'libs'
     }
     lintOptions {
         disable 'InvalidPackage'
+    }
+    compileOptions {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
     }
     packagingOptions {
         merge 'res/values/values.xml'

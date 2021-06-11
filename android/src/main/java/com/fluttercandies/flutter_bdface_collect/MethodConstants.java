@@ -6,7 +6,7 @@ public class MethodConstants {
     public static final String GetPlatformVersion = "GetPlatformVersion";
     /// 初始化
     public static final String Init = "Init";
-    /// 采集
+    /// 人脸采集
     public static final String Collect = "Collect";
 
 }

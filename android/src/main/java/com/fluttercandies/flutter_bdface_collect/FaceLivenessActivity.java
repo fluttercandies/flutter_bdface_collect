@@ -3,9 +3,9 @@
  */
 package com.fluttercandies.flutter_bdface_collect;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
@@ -33,6 +33,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.baidu.idl.face.platform.FaceConfig;
+import com.baidu.idl.face.platform.FaceEnvironment;
 import com.baidu.idl.face.platform.FaceSDKManager;
 import com.baidu.idl.face.platform.FaceStatusNewEnum;
 import com.baidu.idl.face.platform.ILivenessStrategy;
@@ -43,14 +44,14 @@ import com.baidu.idl.face.platform.manager.TimeManager;
 import com.baidu.idl.face.platform.model.FaceExtInfo;
 import com.baidu.idl.face.platform.model.ImageInfo;
 import com.baidu.idl.face.platform.stat.Ast;
+import com.baidu.idl.face.platform.utils.APIUtils;
+import com.baidu.idl.face.platform.utils.Base64Utils;
+import com.baidu.idl.face.platform.utils.DensityUtils;
 import com.fluttercandies.flutter_bdface_collect.utils.BrightnessUtils;
 import com.fluttercandies.flutter_bdface_collect.utils.CameraPreviewUtils;
 import com.fluttercandies.flutter_bdface_collect.utils.CameraUtils;
 import com.fluttercandies.flutter_bdface_collect.utils.VolumeUtils;
 import com.fluttercandies.flutter_bdface_collect.widget.FaceDetectRoundView;
-import com.baidu.idl.face.platform.utils.APIUtils;
-import com.baidu.idl.face.platform.utils.Base64Utils;
-import com.baidu.idl.face.platform.utils.DensityUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -114,6 +115,8 @@ public class FaceLivenessActivity extends BaseActivity implements
     private Context mContext;
     private AnimationDrawable mAnimationDrawable;
     private LivenessTypeEnum mLivenessType = null;
+    // 超时 Dialog
+    private TimeoutDialog mTimeoutDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -476,8 +479,7 @@ public class FaceLivenessActivity extends BaseActivity implements
     }
 
     @Override
-    public void onLivenessCompletion(FaceStatusNewEnum status, String message,
-                                     HashMap<String, ImageInfo> base64ImageCropMap,
+    public void onLivenessCompletion(FaceStatusNewEnum status, String message, HashMap<String, ImageInfo> base64ImageCropMap,
                                      HashMap<String, ImageInfo> base64ImageSrcMap, int currentLivenessCount) {
         if (mIsCompletion) {
             return;
@@ -491,6 +493,70 @@ public class FaceLivenessActivity extends BaseActivity implements
         }
         // 打点
         Ast.getInstance().faceHit("liveness");
+        if (status == FaceStatusNewEnum.OK && mIsCompletion) {
+            // 获取最优图片
+            getBestImage(base64ImageCropMap, base64ImageSrcMap);
+        } else if (status == FaceStatusNewEnum.DetectRemindCodeTimeout) {
+            if (mViewBg != null) {
+                mViewBg.setVisibility(View.VISIBLE);
+            }
+            setResult(FlutterBdfaceCollectPlugin.COLLECT_TIMEOUT_CODE);
+            finish();
+        }
+    }
+
+    /**
+     * 获取最优图片
+     *
+     * @param imageCropMap 抠图集合
+     * @param imageSrcMap  原图集合
+     */
+    private void getBestImage(HashMap<String, ImageInfo> imageCropMap, HashMap<String, ImageInfo> imageSrcMap) {
+        String imageCropBase64 = "";
+        String imageSrcBase64 = "";
+        // 获取加密方式
+        int secType = mFaceConfig.getSecType();
+        // 将抠图集合中的图片按照质量降序排序，最终选取质量最优的一张抠图图片
+        if (imageCropMap != null && imageCropMap.size() > 0) {
+            List<Map.Entry<String, ImageInfo>> list1 = new ArrayList<>(imageCropMap.entrySet());
+            Collections.sort(list1, (o1, o2) -> {
+                String[] key1 = o1.getKey().split("_");
+                String score1 = key1[2];
+                String[] key2 = o2.getKey().split("_");
+                String score2 = key2[2];
+                // 降序排序
+                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
+            });
+
+            if (secType == 0) {
+                imageCropBase64 = list1.get(0).getValue().getBase64();
+            } else {
+                imageCropBase64 = list1.get(0).getValue().getSecBase64();
+            }
+        }
+
+        // 将原图集合中的图片按照质量降序排序，最终选取质量最优的一张原图图片
+        if (imageSrcMap != null && imageSrcMap.size() > 0) {
+            List<Map.Entry<String, ImageInfo>> list2 = new ArrayList<>(imageSrcMap.entrySet());
+            Collections.sort(list2, (o1, o2) -> {
+                String[] key1 = o1.getKey().split("_");
+                String score1 = key1[2];
+                String[] key2 = o2.getKey().split("_");
+                String score2 = key2[2];
+                // 降序排序
+                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
+            });
+            if (secType == 0) {
+                imageSrcBase64 = list2.get(0).getValue().getBase64();
+            } else {
+                imageSrcBase64 = list2.get(0).getValue().getSecBase64();
+            }
+        }
+        final Intent resultIntent = new Intent();
+        resultIntent.putExtra("imageCropBase64", imageCropBase64);
+        resultIntent.putExtra("imageSrcBase64", imageSrcBase64);
+        setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE, resultIntent);
+        finish();
     }
 
     private void onRefreshView(FaceStatusNewEnum status, String message, int currentLivenessCount) {
@@ -672,7 +738,7 @@ public class FaceLivenessActivity extends BaseActivity implements
     }
 
     private void setImageView1(List<Map.Entry<String, ImageInfo>> list) {
-        Bitmap bmp = null;
+        Bitmap bmp;
         mImageLayout.removeAllViews();
         for (Map.Entry<String, ImageInfo> entry : list) {
             bmp = base64ToBitmap(entry.getValue().getBase64());
@@ -683,7 +749,7 @@ public class FaceLivenessActivity extends BaseActivity implements
     }
 
     private void setImageView2(List<Map.Entry<String, ImageInfo>> list) {
-        Bitmap bmp = null;
+        Bitmap bmp;
         mImageLayout2.removeAllViews();
         for (Map.Entry<String, ImageInfo> entry : list) {
             bmp = base64ToBitmap(entry.getValue().getBase64());

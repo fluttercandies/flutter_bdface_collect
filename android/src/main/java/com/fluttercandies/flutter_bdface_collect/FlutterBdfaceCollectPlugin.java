@@ -27,9 +27,14 @@ import io.flutter.plugin.common.MethodChannel.Result;
  * FlutterBdfaceCollectPlugin
  */
 public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
+    public static final String TAG = FlutterBdfaceCollectPlugin.class.getSimpleName();
     private MethodChannel channel;
     private Activity activity;
+    private static final int COLLECT_REQ_CODE = 19491001; /// I love China
+    public static final int COLLECT_OK_CODE = 10011949; /// I love China
+    public static final int COLLECT_TIMEOUT_CODE = 19490110; /// I love China
     private static final String channelName = "com.fluttercandies.bdface_collect";
+    private Result result;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -57,65 +62,87 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
+        result = null;
     }
 
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         activity = binding.getActivity();
+        binding.addActivityResultListener((requestCode, resultCode, data) -> {
+            if (requestCode == COLLECT_REQ_CODE) {
+                if (this.result != null) {
+                    HashMap<String, String> res = null;
+                    if (resultCode != Activity.RESULT_CANCELED) {
+                        res = new HashMap<>();
+                        if (resultCode == COLLECT_OK_CODE) {
+                            res.put("imageCropBase64", data.getStringExtra("imageCropBase64"));
+                            res.put("imageSrcBase64", data.getStringExtra("imageSrcBase64"));
+                        } else if (resultCode == COLLECT_TIMEOUT_CODE) {
+                            res.put("error", "检测超时，请按照提示重试");
+                        }
+                    }
+                    result.success(res);
+                    result = null;
+                }
+            }
+            return false;
+        });
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
+        activity = null;
+        result = null;
     }
 
     @Override
     public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        activity = binding.getActivity();
+        result = null;
     }
 
     @Override
     public void onDetachedFromActivity() {
+        activity = null;
+        result = null;
     }
 
     /// 项目初始化
     private void init(Object arguments, final Result result) {
-        @SuppressWarnings("unchecked")
-        HashMap<String, Object> argumentsMap = (HashMap<String, Object>) arguments;
-        setFaceConfig(argumentsMap);
-        String licenseId = (String) argumentsMap.get("licenseId");
+        String licenseId = (String) arguments;
         String licenseFileName = "idl-license.face-android";
         assert licenseId != null;
         IInitCallback iInitCallback = new IInitCallback() {
             @Override
             public void initSuccess() {
-                result.success(null);
+                activity.runOnUiThread(() -> result.success(null));
             }
 
             @Override
             public void initFailure(int i, String s) {
-                result.success("errCode: " + i + ", errMsg: " + s);
+                activity.runOnUiThread(() -> result.success("errCode: " + i + ", errMsg: " + s));
             }
         };
         FaceSDKManager.getInstance().initialize(activity, licenseId, licenseFileName, iInitCallback);
     }
 
-    /// 采集！
+    /// 采集
     private void collect(Object arguments, final Result result) {
-        if (arguments != null) {
-            @SuppressWarnings("unchecked")
-            HashMap<String, Object> argumentsMap = (HashMap<String, Object>) arguments;
-            setFaceConfig(argumentsMap);
-        }
+        @SuppressWarnings("unchecked")
+        HashMap<String, Object> argumentsMap = (HashMap<String, Object>) arguments;
+        int livenessTypeSize = setFaceConfig(argumentsMap);
         Intent intent;
-        if (FaceSDKManager.getInstance().getFaceConfig().getLivenessTypeList().isEmpty()) {
+        if (livenessTypeSize == 0) {
             intent = new Intent(activity, FaceDetectActivity.class);
         } else {
             intent = new Intent(activity, FaceLivenessActivity.class);
         }
-        activity.startActivity(intent);
-        result.success(null);
+        activity.startActivityForResult(intent, COLLECT_REQ_CODE);
+        this.result = result;
     }
 
-    private void setFaceConfig(HashMap<String, Object> argumentsMap) {
+    /// 设置配置
+    private int setFaceConfig(HashMap<String, Object> argumentsMap) {
         Integer minFaceSize = (Integer) argumentsMap.get("minFaceSize");
         Double notFace = (Double) argumentsMap.get("notFace");
         Double brightness = (Double) argumentsMap.get("brightness");
@@ -143,16 +170,17 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         @SuppressWarnings("unchecked")
         List<String> livenessTypes = (List<String>) argumentsMap.get("livenessTypes");
         Boolean livenessRandom = (Boolean) argumentsMap.get("livenessRandom");
+        Integer livenessRandomCount = (Integer) argumentsMap.get("livenessRandomCount");
         Boolean sund = (Boolean) argumentsMap.get("sund");
         assert minFaceSize != null && notFace != null && brightness != null;
         assert brightnessMax != null && blurness != null && occlusionLeftEye != null;
         assert occlusionRightEye != null && occlusionChin != null && cacheImageNum != null;
-        assert occlusionNose != null && occlusionMouth != null && eyeClosed != null;
-        assert occlusionLeftContour != null && occlusionRightContour != null;
+        assert occlusionNose != null && occlusionMouth != null && eyeClosed != null && sund != null;
+        assert occlusionLeftContour != null && occlusionRightContour != null && secType != null;
         assert headPitch != null && headYaw != null && headRoll != null;
         assert scale != null && cropHeight != null && cropWidth != null;
         assert enlargeRatio != null && faceFarRatio != null && faceClosedRatio != null;
-        assert livenessTypes != null && secType != null && livenessRandom != null && sund != null;
+        assert livenessTypes != null && livenessRandom != null && livenessRandomCount != null;
 
         FaceConfig config = FaceSDKManager.getInstance().getFaceConfig();
         // 设置 最小人脸阈值
@@ -203,8 +231,12 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         config.setSecType(secType);
         // 设置 开启提示音
         config.setSound(sund);
+        // 检测超时设置
+        config.setTimeDetectModule(FaceEnvironment.TIME_DETECT_MODULE);
         // 设置 动作活体是否随机
         config.setLivenessRandom(livenessRandom);
+        // 设置 动作活体随机数量
+        config.setLivenessRandomCount(livenessRandomCount);
         // 设置 活体动作
         List<LivenessTypeEnum> livenessTypeEnums = new ArrayList<>();
         for (String type : livenessTypes) {
@@ -231,5 +263,6 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         }
         config.setLivenessTypeList(livenessTypeEnums);
         FaceSDKManager.getInstance().setFaceConfig(config);
+        return livenessTypeEnums.size();
     }
 }

@@ -69,8 +69,8 @@ class FaceConfig {
   /// 活体动作
   late Set<LivenessType> livenessTypes;
 
-  /// 动作活体是否随机
-  late bool livenessRandom;
+  /// 动作活体随机数量
+  late int livenessRandomCount;
 
   /// 开启提示音
   late bool sund;
@@ -100,8 +100,8 @@ class FaceConfig {
       this.faceFarRatio = 0.4,
       this.faceClosedRatio = 1,
       this.secType = 0,
-      this.livenessRandom = true,
       this.sund = true,
+      this.livenessRandomCount = 3,
       Set<LivenessType>? livenessTypes})
       : assert(0.1 <= notFace && notFace <= 1.0),
         assert(0 <= brightness && brightness <= 255),
@@ -123,8 +123,9 @@ class FaceConfig {
         assert(0 <= faceFarRatio && faceFarRatio <= 1.0),
         assert(0 <= faceClosedRatio && faceClosedRatio <= 1.0),
         assert(secType == 0 || secType == 1),
-        assert(livenessTypes == null || livenessTypes.length > 1),
-        this.livenessTypes = livenessTypes ?? {};
+        assert(livenessTypes == null || livenessTypes.length > 0) {
+    this.livenessTypes = livenessTypes ?? {};
+  }
 
   Map<String, dynamic> toMap() => {
         'minFaceSize': this.minFaceSize,
@@ -151,9 +152,13 @@ class FaceConfig {
         'faceFarRatio': this.faceFarRatio,
         'faceClosedRatio': this.faceClosedRatio,
         'secType': this.secType,
-        'livenessTypes': this.livenessTypes.map((v) => v.code).toList(),
-        'livenessRandom': livenessRandom && livenessTypes.isNotEmpty,
         'sund': this.sund,
+        'livenessTypes': this.livenessTypes.map((v) => v.code).toList(),
+        'livenessRandom':
+            this.livenessTypes.isNotEmpty && livenessRandomCount != 0,
+        'livenessRandomCount': livenessRandomCount > livenessTypes.length
+            ? livenessTypes.length
+            : livenessRandomCount,
       };
 }
 
@@ -163,24 +168,45 @@ class LivenessType {
 
   const LivenessType._(this.code);
 
+  /// 眨眼
   static const Eye = LivenessType._('Eye');
+
+  /// 张嘴
   static const Mouth = LivenessType._('Mouth');
+
+  /// 向左转头
   static const HeadLeft = LivenessType._('HeadLeft');
+
+  /// 向右转头
   static const HeadRight = LivenessType._('HeadRight');
+
+  /// 向上抬头
   static const HeadUp = LivenessType._('HeadUp');
+
+  /// 向下低头
   static const HeadDown = LivenessType._('HeadDown');
 
-  static const values = [Eye, Mouth, HeadLeft, HeadRight, HeadUp, HeadDown];
+  /// 所有动作
+  static const all = [Eye, Mouth, HeadLeft, HeadRight, HeadUp, HeadDown];
 }
 
 /// 采集结果
 class CollectRresult {
-  late String imageBase;
-  late String error;
-
-  CollectRresult({this.imageBase = '', this.error = ''});
+  CollectRresult({
+    this.imageCropBase64 = '',
+    this.imageSrcBase64 = '',
+    this.error = '',
+  });
 
   factory CollectRresult.fromMap(Map<String, dynamic> map) => CollectRresult(
-      imageBase: map['imageBase'] as String? ?? '',
+      imageCropBase64: map['imageCropBase64'] as String? ?? '',
+      imageSrcBase64: map['imageSrcBase64'] as String? ?? '',
       error: map['error'] as String? ?? '');
+
+  /// 抠图加密字符串
+  late String imageCropBase64;
+
+  /// 原图加密字符串
+  late String imageSrcBase64;
+  late String error;
 }

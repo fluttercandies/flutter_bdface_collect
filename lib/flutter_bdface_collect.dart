@@ -24,7 +24,7 @@ class _ServiceApi {
   }
 
   /// 初始化
-  Future<String?> init(String licenseId, {FaceConfig? config}) async {
+  Future<String?> init(String licenseId) async {
     var s = await Permission.camera.status;
     if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
       s = await Permission.camera.request();
@@ -41,17 +41,15 @@ class _ServiceApi {
         }
       }
     }
-    var configMap = config?.toMap() ?? FaceConfig().toMap();
-    configMap['licenseId'] = licenseId;
     final String? err = await _methodChannel.invokeMethod<String>(
-        MethodConstants.Init, configMap);
+        MethodConstants.Init, licenseId);
     return err;
   }
 
-  /// 采集人脸
-  Future<CollectRresult> collect({FaceConfig? config}) async {
+  /// 采集
+  Future<CollectRresult> collect(FaceConfig config) async {
     final Map<String, dynamic>? result = await _methodChannel.invokeMapMethod(
-        MethodConstants.Collect, config?.toMap());
+        MethodConstants.Collect, config.toMap());
     if (result == null) {
       return CollectRresult(error: "取消识别");
     }

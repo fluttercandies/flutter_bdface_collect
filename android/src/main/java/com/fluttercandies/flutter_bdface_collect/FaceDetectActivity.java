@@ -3,9 +3,9 @@
  */
 package com.fluttercandies.flutter_bdface_collect;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
@@ -29,19 +29,20 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.baidu.idl.face.platform.FaceConfig;
+import com.baidu.idl.face.platform.FaceEnvironment;
 import com.baidu.idl.face.platform.FaceSDKManager;
 import com.baidu.idl.face.platform.FaceStatusNewEnum;
 import com.baidu.idl.face.platform.IDetectStrategy;
 import com.baidu.idl.face.platform.IDetectStrategyCallback;
 import com.baidu.idl.face.platform.model.ImageInfo;
 import com.baidu.idl.face.platform.stat.Ast;
+import com.baidu.idl.face.platform.utils.APIUtils;
+import com.baidu.idl.face.platform.utils.Base64Utils;
 import com.fluttercandies.flutter_bdface_collect.utils.BrightnessUtils;
+import com.fluttercandies.flutter_bdface_collect.utils.CameraPreviewUtils;
 import com.fluttercandies.flutter_bdface_collect.utils.CameraUtils;
 import com.fluttercandies.flutter_bdface_collect.utils.VolumeUtils;
 import com.fluttercandies.flutter_bdface_collect.widget.FaceDetectRoundView;
-import com.baidu.idl.face.platform.utils.APIUtils;
-import com.baidu.idl.face.platform.utils.Base64Utils;
-import com.fluttercandies.flutter_bdface_collect.utils.CameraPreviewUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,7 +62,6 @@ public class FaceDetectActivity extends BaseActivity implements
         IDetectStrategyCallback {
 
     public static final String TAG = FaceDetectActivity.class.getSimpleName();
-
     // View
     protected View mRootView;
     protected FrameLayout mFrameLayout;
@@ -151,15 +151,12 @@ public class FaceDetectActivity extends BaseActivity implements
         mSoundView = (ImageView) mRootView.findViewById(R.id.detect_sound);
         mSoundView.setImageResource(mIsEnableSound ?
                 R.mipmap.icon_titlebar_voice2 : R.drawable.collect_image_voice_selector);
-        mSoundView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mIsEnableSound = !mIsEnableSound;
-                mSoundView.setImageResource(mIsEnableSound ?
-                        R.mipmap.icon_titlebar_voice2 : R.drawable.collect_image_voice_selector);
-                if (mIDetectStrategy != null) {
-                    mIDetectStrategy.setDetectStrategySoundEnable(mIsEnableSound);
-                }
+        mSoundView.setOnClickListener(v -> {
+            mIsEnableSound = !mIsEnableSound;
+            mSoundView.setImageResource(mIsEnableSound ?
+                    R.mipmap.icon_titlebar_voice2 : R.drawable.collect_image_voice_selector);
+            if (mIDetectStrategy != null) {
+                mIDetectStrategy.setDetectStrategySoundEnable(mIsEnableSound);
             }
         });
         mTipsTopView = (TextView) mRootView.findViewById(R.id.detect_top_tips);
@@ -442,6 +439,69 @@ public class FaceDetectActivity extends BaseActivity implements
         }
         // 打点
         Ast.getInstance().faceHit("detect");
+        if (status == FaceStatusNewEnum.OK && mIsCompletion) {
+            // 获取最优图片
+            getBestImage(base64ImageCropMap, base64ImageSrcMap);
+        } else if (status == FaceStatusNewEnum.DetectRemindCodeTimeout) {
+            if (mViewBg != null) {
+                mViewBg.setVisibility(View.VISIBLE);
+            }
+            setResult(FlutterBdfaceCollectPlugin.COLLECT_TIMEOUT_CODE);
+            finish();
+        }
+    }
+
+    /**
+     * 获取最优图片
+     *
+     * @param imageCropMap 抠图集合
+     * @param imageSrcMap  原图集合
+     */
+    private void getBestImage(HashMap<String, ImageInfo> imageCropMap, HashMap<String, ImageInfo> imageSrcMap) {
+        String imageCropBase64 = "";
+        String imageSrcBase64 = "";
+        // 获取加密方式
+        int secType = mFaceConfig.getSecType();
+        // 将抠图集合中的图片按照质量降序排序，最终选取质量最优的一张抠图图片
+        if (imageCropMap != null && imageCropMap.size() > 0) {
+            List<Map.Entry<String, ImageInfo>> list1 = new ArrayList<>(imageCropMap.entrySet());
+            Collections.sort(list1, (o1, o2) -> {
+                String[] key1 = o1.getKey().split("_");
+                String score1 = key1[2];
+                String[] key2 = o2.getKey().split("_");
+                String score2 = key2[2];
+                // 降序排序
+                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
+            });
+            if (secType == 0) {
+                imageCropBase64 = list1.get(0).getValue().getBase64();
+            } else {
+                imageCropBase64 = list1.get(0).getValue().getSecBase64();
+            }
+        }
+
+        // 将原图集合中的图片按照质量降序排序，最终选取质量最优的一张原图图片
+        if (imageSrcMap != null && imageSrcMap.size() > 0) {
+            List<Map.Entry<String, ImageInfo>> list2 = new ArrayList<>(imageSrcMap.entrySet());
+            Collections.sort(list2, (o1, o2) -> {
+                String[] key1 = o1.getKey().split("_");
+                String score1 = key1[2];
+                String[] key2 = o2.getKey().split("_");
+                String score2 = key2[2];
+                // 降序排序
+                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
+            });
+            if (secType == 0) {
+                imageSrcBase64 = list2.get(0).getValue().getBase64();
+            } else {
+                imageSrcBase64 = list2.get(0).getValue().getSecBase64();
+            }
+        }
+        final Intent resultIntent = new Intent();
+        resultIntent.putExtra("imageCropBase64", imageCropBase64);
+        resultIntent.putExtra("imageSrcBase64", imageSrcBase64);
+        setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE, resultIntent);
+        finish();
     }
 
     private void onRefreshView(FaceStatusNewEnum status, String message) {
