@@ -2,20 +2,26 @@ PODS:
   - Flutter (1.0.0)
   - flutter_bdface_collect (0.0.1):
     - Flutter
+  - "permission_handler (5.1.0+2)":
+    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_bdface_collect (from `.symlinks/plugins/flutter_bdface_collect/ios`)
+  - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
   flutter_bdface_collect:
     :path: ".symlinks/plugins/flutter_bdface_collect/ios"
+  permission_handler:
+    :path: ".symlinks/plugins/permission_handler/ios"
 
 SPEC CHECKSUMS:
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
   flutter_bdface_collect: e38651dfa8f8519cd52366eadcb4d120efc2adb5
+  permission_handler: ccb20a9fad0ee9b1314a52b70b76b473c5f8dab0
 
 PODFILE CHECKSUM: 8e679eca47255a8ca8067c4c67aab20e64cb974d
 

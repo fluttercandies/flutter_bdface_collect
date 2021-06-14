@@ -188,7 +188,7 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         // 设置 非人脸阈值
         config.setNotFaceValue(notFace.floatValue());
         // 设置 图片最小光照阈值
-        config.setBlurnessValue(brightness.floatValue());
+        config.setBrightnessValue(brightness.floatValue());
         // 设置 图片最大光照阈值
         config.setBrightnessMaxValue(brightnessMax.floatValue());
         // 设置 图像模糊阈值
