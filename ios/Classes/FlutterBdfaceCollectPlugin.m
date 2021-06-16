@@ -134,7 +134,6 @@
                 [liveActionArray addObject:@(FaceLivenessActionTypeLivePitchDown)];
             }
         }
-        NSLog(@"liveActionArray： %lu", (unsigned long)liveActionArray.count);
         BDFaceLivenessViewController* lvc2 = [[BDFaceLivenessViewController alloc] init];
         [lvc2 livenesswithList:liveActionArray order:!livenessRandom.boolValue numberOfLiveness:3];
         lvc = lvc2;
