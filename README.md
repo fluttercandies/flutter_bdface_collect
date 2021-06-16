@@ -24,7 +24,7 @@ SDK 会校验 apk 签名，请使用申请授权相符的签名证书
 <string>使用相机</string>
 ```
 在 iOS 项目的 `Runner` 目前下放入百度离线采集SDK的iOS授权文件，文件名固定为 `idl-license.face-ios`，并将文件加入资源
-![example](doc/QQ20210616-175934.jpg)
+![example](https://raw.githubusercontent.com/fluttercandies/flutter_bdface_collect/main/doc/QQ20210616-175934.jpg)
 
 ## Usage
 
