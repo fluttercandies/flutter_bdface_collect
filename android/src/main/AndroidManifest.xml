@@ -43,5 +43,46 @@
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/Theme_NoTitle" />
+
+        <!--安全设备指纹接入 start-->
+        <activity
+                android:name="com.baidu.liantian.LiantianActivity"
+                android:exported="true"
+                android:theme="@android:style/Theme.Translucent"
+                android:excludeFromRecents="true"
+                android:launchMode="standard">
+            <intent-filter>
+                <action android:name="com.baidu.action.Liantian.VIEW"/>
+                <category android:name="com.baidu.category.liantian"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+
+        <receiver android:name="com.baidu.liantian.LiantianReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="com.baidu.action.Liantian.VIEW"/>
+                <category android:name="com.baidu.category.liantian"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+        <!--将com.baidu.idl.face.demo替换成您工程的包名-->
+<!--        <provider android:authorities="com.baidu.idl.face.demo.liantian.ac.provider"-->
+<!--            android:name="com.baidu.liantian.LiantianProvider" android:exported="true"/>-->
+        <service
+                android:name="com.baidu.liantian.LiantianService"
+                android:exported="false">
+            <intent-filter>
+                <action android:name="com.baidu.action.Liantian.VIEW"/>
+                <category android:name="com.baidu.category.liantian"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
+
+        <meta-data android:name="seckey_avscan" android:value="660346260f8a841a04ec2a56815b421b"/>
+        <meta-data android:name="appkey_avscan" android:value="100034"/>
+        <!--安全设备指纹接入 end-->
     </application>
 </manifest>

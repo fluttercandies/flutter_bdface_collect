@@ -59,7 +59,8 @@ public class FaceDetectActivity extends BaseActivity implements
         Camera.PreviewCallback,
         Camera.ErrorCallback,
         VolumeUtils.VolumeCallback,
-        IDetectStrategyCallback {
+        IDetectStrategyCallback,
+        TimeoutDialog.OnTimeoutDialogClickListener {
 
     public static final String TAG = FaceDetectActivity.class.getSimpleName();
     // View
@@ -99,6 +100,8 @@ public class FaceDetectActivity extends BaseActivity implements
     protected int mPreviewDegree;
     // 监听系统音量广播
     protected BroadcastReceiver mVolumeReceiver;
+    // 超时 Dialog
+    private TimeoutDialog mTimeoutDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -446,8 +449,7 @@ public class FaceDetectActivity extends BaseActivity implements
             if (mViewBg != null) {
                 mViewBg.setVisibility(View.VISIBLE);
             }
-            setResult(FlutterBdfaceCollectPlugin.COLLECT_TIMEOUT_CODE);
-            finish();
+            showMessageDialog();
         }
     }
 
@@ -502,6 +504,15 @@ public class FaceDetectActivity extends BaseActivity implements
         resultIntent.putExtra("imageSrcBase64", imageSrcBase64);
         setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE, resultIntent);
         finish();
+    }
+
+    private void showMessageDialog() {
+        mTimeoutDialog = new TimeoutDialog(this);
+        mTimeoutDialog.setDialogListener(this);
+        mTimeoutDialog.setCanceledOnTouchOutside(false);
+        mTimeoutDialog.setCancelable(false);
+        mTimeoutDialog.show();
+        onPause();
     }
 
     private void onRefreshView(FaceStatusNewEnum status, String message) {
@@ -590,5 +601,24 @@ public class FaceDetectActivity extends BaseActivity implements
             iv.setImageBitmap(bmp);
             mImageLayout2.addView(iv, new LinearLayout.LayoutParams(300, 300));
         }
+    }
+
+    @Override
+    public void onRecollect() {
+        if (mTimeoutDialog != null) {
+            mTimeoutDialog.dismiss();
+        }
+        if (mViewBg != null) {
+            mViewBg.setVisibility(View.GONE);
+        }
+        onResume();
+    }
+
+    @Override
+    public void onReturn() {
+        if (mTimeoutDialog != null) {
+            mTimeoutDialog.dismiss();
+        }
+        finish();
     }
 }

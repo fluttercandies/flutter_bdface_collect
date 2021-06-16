@@ -60,7 +60,7 @@
         android:background="@color/background"
         android:paddingTop="15dp"
         android:paddingBottom="15dp"
-        android:text="取消"
+        android:text="取消采集"
         android:textColor="#666666"
         android:textSize="18sp" />
 </RelativeLayout>

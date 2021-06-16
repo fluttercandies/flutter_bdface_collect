@@ -55,4 +55,9 @@ class _ServiceApi {
     }
     return CollectRresult.fromMap(result);
   }
+
+  /// 释放
+  Future<void> unInit() async {
+    await _methodChannel.invokeMethod(MethodConstants.UnInit);
+  }
 }

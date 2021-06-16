@@ -1,9 +1,60 @@
 # flutter_bdface_collect
 
-a baidu face offline collect plugin. Only Android and IOS platforms are supported. 
+a baidu face offline collect plugin. Only Android and IOS platforms are supported.
+
 百度人脸离线采集插件，只支持安卓和iOS。
 
-develop....
+## Preparing for use
+### Android
+在 `AndroidManifest.xml` 的 `application` 标签内添加以下内容：
+```xml
+<!--将 com.baidu.idl.face.demo 替换成您安卓工程的包名-->
+<provider android:authorities="com.baidu.idl.face.demo.liantian.ac.provider"
+    android:name="com.baidu.liantian.LiantianProvider" android:exported="true"/>
+```
+在 Android 项目的`app/src/main/assets` 目录下放入百度离线采集SDK的Android授权文件，文件名固定为 `idl-license.face-android`
+SDK 会校验 apk 签名，请使用申请授权相符的签名证书
+### iOS
+由于使用了[permission_handler](https://pub.dev/packages/permission_handler) 
+校验隐私授权，请按照permission_handler的使用文档添加使用相机的权限声明。
+
+在 `Info.plist` 的 `dict` 标签内添加以下内容
+```xml
+<key>NSCameraUsageDescription</key>
+<string>使用相机</string>
+```
+在 iOS 项目的 `Runner` 目前下放入百度离线采集SDK的iOS授权文件，文件名固定为 `idl-license.face-ios`，并将文件加入资源
+![example](doc/QQ20210616-175934.jpg)
+
+## Usage
+
+### Init 初始化
+```dart 
+    late var licenseId;
+    if (Platform.isAndroid) licenseId = "demo-face-android";
+    else if (Platform.isIOS) licenseId = "demo-face-ios";
+    print('开始初始化');
+    String? err = await FlutterBdfaceCollect.instance.init(licenseId);
+    print('初始化结果${err == null ? '成功' : '失败'}');
+```
+
+### Collect 采集
+```dart
+    FaceConfig config = FaceConfig(livenessTypes: Set.from(LivenessType.all.sublist(1, 4)));
+    CollectRresult res = await FlutterBdfaceCollect.instance.collect(config);
+    print('采集错误结果:${res.error.isNotEmpty} 内容：${res.error}');
+    print('采集原图imageCropBase64:${res.imageSrcBase64.isNotEmpty}');
+    print('采集抠图imageSrcBase64:${res.imageCropBase64.isNotEmpty}');
+```
+### UnInit 释放
+```dart
+    FlutterBdfaceCollect.instance.unInit();
+```
+
+### 
+
+
+
 
 
 

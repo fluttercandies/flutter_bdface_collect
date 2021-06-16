@@ -32,7 +32,6 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
     private Activity activity;
     private static final int COLLECT_REQ_CODE = 19491001; /// I love China
     public static final int COLLECT_OK_CODE = 10011949; /// I love China
-    public static final int COLLECT_TIMEOUT_CODE = 19490110; /// I love China
     private static final String channelName = "com.fluttercandies.bdface_collect";
     private Result result;
 
@@ -54,6 +53,9 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
             case MethodConstants.Collect:
                 collect(call.arguments, result);
                 break;
+            case MethodConstants.UnInit:
+                unInit(result);
+                break;
             default:
                 result.notImplemented();
         }
@@ -72,14 +74,10 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
             if (requestCode == COLLECT_REQ_CODE) {
                 if (this.result != null) {
                     HashMap<String, String> res = null;
-                    if (resultCode != Activity.RESULT_CANCELED) {
+                    if (resultCode == COLLECT_OK_CODE) {
                         res = new HashMap<>();
-                        if (resultCode == COLLECT_OK_CODE) {
-                            res.put("imageCropBase64", data.getStringExtra("imageCropBase64"));
-                            res.put("imageSrcBase64", data.getStringExtra("imageSrcBase64"));
-                        } else if (resultCode == COLLECT_TIMEOUT_CODE) {
-                            res.put("error", "检测超时，请按照提示重试");
-                        }
+                        res.put("imageCropBase64", data.getStringExtra("imageCropBase64"));
+                        res.put("imageSrcBase64", data.getStringExtra("imageSrcBase64"));
                     }
                     result.success(res);
                     result = null;
@@ -141,6 +139,12 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         this.result = result;
     }
 
+    /// SDK 释放
+    private void unInit(final Result result) {
+        FaceSDKManager.getInstance().release();
+        result.success(null);
+    }
+
     /// 设置配置
     private int setFaceConfig(HashMap<String, Object> argumentsMap) {
         Integer minFaceSize = (Integer) argumentsMap.get("minFaceSize");
@@ -170,7 +174,6 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         @SuppressWarnings("unchecked")
         List<String> livenessTypes = (List<String>) argumentsMap.get("livenessTypes");
         Boolean livenessRandom = (Boolean) argumentsMap.get("livenessRandom");
-        Integer livenessRandomCount = (Integer) argumentsMap.get("livenessRandomCount");
         Boolean sund = (Boolean) argumentsMap.get("sund");
         assert minFaceSize != null && notFace != null && brightness != null;
         assert brightnessMax != null && blurness != null && occlusionLeftEye != null;
@@ -180,7 +183,7 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         assert headPitch != null && headYaw != null && headRoll != null;
         assert scale != null && cropHeight != null && cropWidth != null;
         assert enlargeRatio != null && faceFarRatio != null && faceClosedRatio != null;
-        assert livenessTypes != null && livenessRandom != null && livenessRandomCount != null;
+        assert livenessTypes != null && livenessRandom != null;
 
         FaceConfig config = FaceSDKManager.getInstance().getFaceConfig();
         // 设置 最小人脸阈值
@@ -225,8 +228,8 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         // 设置 抠图人脸框与背景比例
         config.setEnlargeRatio(enlargeRatio.floatValue());
         // 设置 检测框远近比率
-        config.setEnlargeRatio(faceFarRatio.floatValue());
-        config.setEnlargeRatio(faceClosedRatio.floatValue());
+        config.setFaceFarRatio(faceFarRatio.floatValue());
+        config.setFaceClosedRatio(faceClosedRatio.floatValue());
         // 设置 加密类型，0：Base64加密，上传时image_sec传false；1：百度加密文件加密，上传时image_sec传true
         config.setSecType(secType);
         // 设置 开启提示音
@@ -235,8 +238,6 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         config.setTimeDetectModule(FaceEnvironment.TIME_DETECT_MODULE);
         // 设置 动作活体是否随机
         config.setLivenessRandom(livenessRandom);
-        // 设置 动作活体随机数量
-        config.setLivenessRandomCount(livenessRandomCount);
         // 设置 活体动作
         List<LivenessTypeEnum> livenessTypeEnums = new ArrayList<>();
         for (String type : livenessTypes) {

@@ -8,3 +8,7 @@
 #define GetPlatformVersion @"GetPlatformVersion"
 // 初始化
 #define Init @"Init"
+// 采集
+#define Collect @"Collect"
+// 释放
+#define UnInit @"UnInit"

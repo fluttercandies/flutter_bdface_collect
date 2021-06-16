@@ -8,4 +8,7 @@ class MethodConstants {
 
   /// 采集
   static const String Collect = 'Collect';
+
+  /// 释放
+  static const String UnInit = 'UnInit';
 }

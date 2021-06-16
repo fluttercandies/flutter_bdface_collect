@@ -8,5 +8,7 @@ public class MethodConstants {
     public static final String Init = "Init";
     /// 人脸采集
     public static final String Collect = "Collect";
+    /// 释放
+    public static final String UnInit = "UnInit";
 
 }

@@ -69,8 +69,8 @@ class FaceConfig {
   /// 活体动作
   late Set<LivenessType> livenessTypes;
 
-  /// 动作活体随机数量
-  late int livenessRandomCount;
+  /// 动作活体随机
+  late bool livenessRandom;
 
   /// 开启提示音
   late bool sund;
@@ -101,7 +101,7 @@ class FaceConfig {
       this.faceClosedRatio = 1,
       this.secType = 0,
       this.sund = true,
-      this.livenessRandomCount = 3,
+      this.livenessRandom = true,
       Set<LivenessType>? livenessTypes})
       : assert(0.1 <= notFace && notFace <= 1.0),
         assert(0 <= brightness && brightness <= 255),
@@ -154,11 +154,7 @@ class FaceConfig {
         'secType': this.secType,
         'sund': this.sund,
         'livenessTypes': this.livenessTypes.map((v) => v.code).toList(),
-        'livenessRandom':
-            this.livenessTypes.isNotEmpty && livenessRandomCount != 0,
-        'livenessRandomCount': livenessRandomCount > livenessTypes.length
-            ? livenessTypes.length
-            : livenessRandomCount,
+        'livenessRandom': livenessRandom,
       };
 }
 

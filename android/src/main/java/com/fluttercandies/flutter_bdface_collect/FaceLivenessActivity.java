@@ -69,7 +69,7 @@ public class FaceLivenessActivity extends BaseActivity implements
         Camera.ErrorCallback,
         VolumeUtils.VolumeCallback,
         ILivenessStrategyCallback,
-        ILivenessViewCallback {
+        ILivenessViewCallback, TimeoutDialog.OnTimeoutDialogClickListener {
 
     public static final String TAG = FaceLivenessActivity.class.getSimpleName();
 
@@ -500,8 +500,7 @@ public class FaceLivenessActivity extends BaseActivity implements
             if (mViewBg != null) {
                 mViewBg.setVisibility(View.VISIBLE);
             }
-            setResult(FlutterBdfaceCollectPlugin.COLLECT_TIMEOUT_CODE);
-            finish();
+            showMessageDialog();
         }
     }
 
@@ -557,6 +556,16 @@ public class FaceLivenessActivity extends BaseActivity implements
         resultIntent.putExtra("imageSrcBase64", imageSrcBase64);
         setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE, resultIntent);
         finish();
+    }
+
+
+    private void showMessageDialog() {
+        mTimeoutDialog = new TimeoutDialog(this);
+        mTimeoutDialog.setDialogListener(this);
+        mTimeoutDialog.setCanceledOnTouchOutside(false);
+        mTimeoutDialog.setCancelable(false);
+        mTimeoutDialog.show();
+        onPause();
     }
 
     private void onRefreshView(FaceStatusNewEnum status, String message, int currentLivenessCount) {
@@ -757,5 +766,24 @@ public class FaceLivenessActivity extends BaseActivity implements
             iv.setImageBitmap(bmp);
             mImageLayout2.addView(iv, new LinearLayout.LayoutParams(300, 300));
         }
+    }
+
+    @Override
+    public void onRecollect() {
+        if (mTimeoutDialog != null) {
+            mTimeoutDialog.dismiss();
+        }
+        if (mViewBg != null) {
+            mViewBg.setVisibility(View.GONE);
+        }
+        onResume();
+    }
+
+    @Override
+    public void onReturn() {
+        if (mTimeoutDialog != null) {
+            mTimeoutDialog.dismiss();
+        }
+        finish();
     }
 }
