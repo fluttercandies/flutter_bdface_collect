@@ -111,13 +111,12 @@
     [[FaceSDKManager sharedInstance] setMinRect:faceFarRatio.floatValue];
     // 设置图片加密类型，type=0 基于base64 加密；type=1 基于百度安全算法加密
     [[FaceSDKManager sharedInstance] setImageEncrypteType:secType.intValue];
-    // 初始化SDK功能函数
+    // 初始化SDK功能
     [[FaceSDKManager sharedInstance] initCollect];
-    // 设置是否开启提示音
-    [[IDLFaceDetectionManager sharedInstance] setEnableSound:sund.boolValue];
-    [[IDLFaceLivenessManager sharedInstance] setEnableSound:sund.boolValue];
     BDFaceBaseViewController* lvc;
     if (livenessTypes.count > 0){
+        // 设置是否开启提示音
+        [[IDLFaceLivenessManager sharedInstance] setEnableSound:sund.boolValue];
         NSMutableArray* liveActionArray = [NSMutableArray new];
         for (NSString *typeStr in livenessTypes) {
             if ([typeStr isEqualToString:@"Eye"]){
@@ -138,6 +137,8 @@
         [lvc2 livenesswithList:liveActionArray order:!livenessRandom.boolValue numberOfLiveness:3];
         lvc = lvc2;
     } else {
+        // 设置是否开启提示音
+        [[IDLFaceDetectionManager sharedInstance] setEnableSound:sund.boolValue];
         lvc = [[BDFaceDetectionViewController alloc] init];
     }
     lvc.completion = ^(FaceCropImageInfo* bestImage){
