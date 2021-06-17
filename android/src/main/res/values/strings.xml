@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Baidu-IDL-FaceSDK</string>
     <string name="detect_no_face">未检测到人脸</string>
     <string name="detect_face_in">把脸移入框内</string>
     <string name="detect_zoom_in">请将脸部靠近一点</string>
