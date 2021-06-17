@@ -1,3 +1,8 @@
+## 1.0.3
+
+* delete redundant resource.
+* 删除多余的资源。
+
 ## 1.0.2
 
 * FIX Optimize Android code, avoid data size limit of intent.
