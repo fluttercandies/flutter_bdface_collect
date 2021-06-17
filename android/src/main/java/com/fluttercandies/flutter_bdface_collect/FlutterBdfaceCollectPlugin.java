@@ -27,13 +27,13 @@ import io.flutter.plugin.common.MethodChannel.Result;
  * FlutterBdfaceCollectPlugin
  */
 public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
-    public static final String TAG = FlutterBdfaceCollectPlugin.class.getSimpleName();
     private MethodChannel channel;
     private Activity activity;
     private static final int COLLECT_REQ_CODE = 19491001; /// I love China
     public static final int COLLECT_OK_CODE = 10011949; /// I love China
     private static final String channelName = "com.fluttercandies.bdface_collect";
     private Result result;
+    static String imageCropBase64, imageSrcBase64;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -76,12 +76,13 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
                     HashMap<String, String> res = null;
                     if (resultCode == COLLECT_OK_CODE) {
                         res = new HashMap<>();
-                        res.put("imageCropBase64", data.getStringExtra("imageCropBase64"));
-                        res.put("imageSrcBase64", data.getStringExtra("imageSrcBase64"));
+                        res.put("imageCropBase64", imageCropBase64);
+                        res.put("imageSrcBase64", imageSrcBase64);
                     }
                     result.success(res);
-                    result = null;
                 }
+                imageCropBase64 = imageSrcBase64 = null;
+                result = null;
             }
             return false;
         });

@@ -460,8 +460,6 @@ public class FaceDetectActivity extends BaseActivity implements
      * @param imageSrcMap  原图集合
      */
     private void getBestImage(HashMap<String, ImageInfo> imageCropMap, HashMap<String, ImageInfo> imageSrcMap) {
-        String imageCropBase64 = "";
-        String imageSrcBase64 = "";
         // 获取加密方式
         int secType = mFaceConfig.getSecType();
         // 将抠图集合中的图片按照质量降序排序，最终选取质量最优的一张抠图图片
@@ -476,9 +474,9 @@ public class FaceDetectActivity extends BaseActivity implements
                 return Float.valueOf(score2).compareTo(Float.valueOf(score1));
             });
             if (secType == 0) {
-                imageCropBase64 = list1.get(0).getValue().getBase64();
+                FlutterBdfaceCollectPlugin.imageCropBase64 = list1.get(0).getValue().getBase64();
             } else {
-                imageCropBase64 = list1.get(0).getValue().getSecBase64();
+                FlutterBdfaceCollectPlugin.imageCropBase64 = list1.get(0).getValue().getSecBase64();
             }
         }
 
@@ -494,15 +492,12 @@ public class FaceDetectActivity extends BaseActivity implements
                 return Float.valueOf(score2).compareTo(Float.valueOf(score1));
             });
             if (secType == 0) {
-                imageSrcBase64 = list2.get(0).getValue().getBase64();
+                FlutterBdfaceCollectPlugin.imageSrcBase64 = list2.get(0).getValue().getBase64();
             } else {
-                imageSrcBase64 = list2.get(0).getValue().getSecBase64();
+                FlutterBdfaceCollectPlugin.imageSrcBase64 = list2.get(0).getValue().getSecBase64();
             }
         }
-        final Intent resultIntent = new Intent();
-        resultIntent.putExtra("imageCropBase64", imageCropBase64);
-        resultIntent.putExtra("imageSrcBase64", imageSrcBase64);
-        setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE, resultIntent);
+        setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE);
         finish();
     }
 
