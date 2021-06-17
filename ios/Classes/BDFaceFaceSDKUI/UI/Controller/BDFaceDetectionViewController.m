@@ -77,6 +77,7 @@ int remindCode = -1;
             case DetectRemindCodeOK: {
                 weakSelf.hasFinished = YES;
                 [self warningStatus:CommonStatus warning:@"非常好"];
+                [self singleActionSuccess:true];
                 dispatch_async(dispatch_get_main_queue(), ^{
                     if (weakSelf.completion) {
                         FaceCropImageInfo *bestImage;
@@ -90,7 +91,6 @@ int remindCode = -1;
                     }
                     [weakSelf closeAction];
                 });
-                [self singleActionSuccess:true];
                 break;
             }
              case DetectRemindCodeTimeout: {

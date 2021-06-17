@@ -109,6 +109,10 @@
                 weakSelf.hasFinished = YES;
                 [self warningStatus:CommonStatus warning:@"非常好"];
                 dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.remindAnimationView stopActionAnimating];
+                });
+                [self singleActionSuccess:true];
+                dispatch_async(dispatch_get_main_queue(), ^{
                     if (weakSelf.completion) {
                         FaceCropImageInfo *bestImage;
                         if (images[@"image"] != nil && [images[@"image"] count] != 0) {
@@ -121,11 +125,6 @@
                     }
                     [weakSelf closeAction];
                 });
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [self.remindAnimationView stopActionAnimating];
-                });
-                
-                [self singleActionSuccess:true];
                 break;
             }
             case LivenessRemindCodeTimeout: {

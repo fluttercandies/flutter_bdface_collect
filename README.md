@@ -51,7 +51,15 @@ SDK 会校验 apk 签名，请使用申请授权相符的签名证书
     FlutterBdfaceCollect.instance.unInit();
 ```
 
-### 
+## 常见问题
+### iOS
+* 编译时报`duplicate output file '***********/build/ios/Debug-iphoneos/Runner.app/Assets.car' on task:`
+  
+    在 `Podfile`文件里添加一行
+  
+    ```install! 'cocoapods', :disable_input_output_paths => true```
+
+
 
 
 
