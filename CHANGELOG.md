@@ -1,3 +1,10 @@
+## 1.0.4
+
+* update README, add old-sdk verison guide.
+* FIX Wrong type name.
+* 更新README,添加old-sdk版本指引。
+* 修正错误的类型名称
+
 ## 1.0.3
 
 * delete redundant resource.

@@ -187,14 +187,14 @@ class LivenessType {
 }
 
 /// 采集结果
-class CollectRresult {
-  CollectRresult({
+class CollectResult {
+  CollectResult({
     this.imageCropBase64 = '',
     this.imageSrcBase64 = '',
     this.error = '',
   });
 
-  factory CollectRresult.fromMap(Map<String, dynamic> map) => CollectRresult(
+  factory CollectResult.fromMap(Map<String, dynamic> map) => CollectResult(
       imageCropBase64: map['imageCropBase64'] as String? ?? '',
       imageSrcBase64: map['imageSrcBase64'] as String? ?? '',
       error: map['error'] as String? ?? '');

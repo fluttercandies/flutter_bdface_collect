@@ -47,13 +47,13 @@ class _ServiceApi {
   }
 
   /// 采集
-  Future<CollectRresult> collect(FaceConfig config) async {
+  Future<CollectResult> collect(FaceConfig config) async {
     final Map<String, dynamic>? result = await _methodChannel.invokeMapMethod(
         MethodConstants.Collect, config.toMap());
     if (result == null) {
-      return CollectRresult(error: "取消识别");
+      return CollectResult(error: "取消识别");
     }
-    return CollectRresult.fromMap(result);
+    return CollectResult.fromMap(result);
   }
 
   /// 释放

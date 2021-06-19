@@ -4,9 +4,14 @@ a baidu face offline collect plugin. Only Android and IOS platforms are supporte
 
 百度人脸离线采集插件，只支持安卓和iOS。【armeabi-v7a、arm64-v8a】
 
-# PS: SDK only supports two CPU architectures. 【armeabi-v7a、arm64-v8a】
-# PS: SDK 只支持两种 CPU 架构. 【armeabi-v7a、arm64-v8a】
+# PS: SDK only support armeabi-v7a、arm64-v8a, if want x86, Please select [old-sdk](https://github.com/fluttercandies/flutter_bdface_collect/tree/old-sdk)
+# PS: SDK 只支持 armeabi-v7a、arm64-v8a, 如果想使用 x86, 请选择 [old-sdk](https://github.com/fluttercandies/flutter_bdface_collect/tree/old-sdk)
 
+## SDK Version
+| Platform | Version |
+|   ----   |   ----  |
+|  Android |   4.1   |
+|   iOS    |   4.1   |
 
 ## Preparing for use
 ### Android
