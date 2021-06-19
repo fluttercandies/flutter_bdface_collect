@@ -2,14 +2,13 @@ package com.fluttercandies.flutter_bdface_collect;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import com.baidu.idl.face.platform.FaceConfig;
-import com.baidu.idl.face.platform.FaceEnvironment;
 import com.baidu.idl.face.platform.FaceSDKManager;
 import com.baidu.idl.face.platform.LivenessTypeEnum;
-import com.baidu.idl.face.platform.listener.IInitCallback;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
     public static final int COLLECT_OK_CODE = 10011949; /// I love China
     private static final String channelName = "com.fluttercandies.bdface_collect";
     private Result result;
-    static String imageCropBase64, imageSrcBase64;
+    static String imageBase64;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -73,15 +72,15 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         binding.addActivityResultListener((requestCode, resultCode, data) -> {
             if (requestCode == COLLECT_REQ_CODE) {
                 if (this.result != null) {
-                    HashMap<String, String> res = null;
+                    HashMap<String, String> res = new HashMap<>();
                     if (resultCode == COLLECT_OK_CODE) {
-                        res = new HashMap<>();
-                        res.put("imageCropBase64", imageCropBase64);
-                        res.put("imageSrcBase64", imageSrcBase64);
+                        res.put("imageBase64", imageBase64);
+                    } else {
+                        res.put("error", "采集失败");
                     }
                     result.success(res);
                 }
-                imageCropBase64 = imageSrcBase64 = null;
+                imageBase64 = null;
                 result = null;
             }
             return false;
@@ -111,18 +110,14 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         String licenseId = (String) arguments;
         String licenseFileName = "idl-license.face-android";
         assert licenseId != null;
-        IInitCallback iInitCallback = new IInitCallback() {
-            @Override
-            public void initSuccess() {
-                activity.runOnUiThread(() -> result.success(null));
-            }
+        FaceSDKManager.getInstance().initialize(activity, licenseId, licenseFileName);
+        result.success(null);
+    }
 
-            @Override
-            public void initFailure(int i, String s) {
-                activity.runOnUiThread(() -> result.success("errCode: " + i + ", errMsg: " + s));
-            }
-        };
-        FaceSDKManager.getInstance().initialize(activity, licenseId, licenseFileName, iInitCallback);
+    /// SDK 释放
+    private void unInit(final Result result) {
+        FaceSDKManager.release();
+        result.success(null);
     }
 
     /// 采集
@@ -140,103 +135,49 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         this.result = result;
     }
 
-    /// SDK 释放
-    private void unInit(final Result result) {
-        FaceSDKManager.getInstance().release();
-        result.success(null);
-    }
-
     /// 设置配置
     private int setFaceConfig(HashMap<String, Object> argumentsMap) {
         Integer minFaceSize = (Integer) argumentsMap.get("minFaceSize");
         Double notFace = (Double) argumentsMap.get("notFace");
         Double brightness = (Double) argumentsMap.get("brightness");
-        Double brightnessMax = (Double) argumentsMap.get("brightnessMax");
         Double blurness = (Double) argumentsMap.get("blurness");
-        Double occlusionLeftEye = (Double) argumentsMap.get("occlusionLeftEye");
-        Double occlusionRightEye = (Double) argumentsMap.get("occlusionRightEye");
-        Double occlusionNose = (Double) argumentsMap.get("occlusionNose");
-        Double occlusionMouth = (Double) argumentsMap.get("occlusionMouth");
-        Double occlusionLeftContour = (Double) argumentsMap.get("occlusionLeftContour");
-        Double occlusionRightContour = (Double) argumentsMap.get("occlusionRightContour");
-        Double occlusionChin = (Double) argumentsMap.get("occlusionChin");
+        Double occlusion = (Double) argumentsMap.get("occlusion");
         Integer headPitch = (Integer) argumentsMap.get("headPitch");
         Integer headYaw = (Integer) argumentsMap.get("headYaw");
         Integer headRoll = (Integer) argumentsMap.get("headRoll");
-        Double eyeClosed = (Double) argumentsMap.get("eyeClosed");
-        Integer cacheImageNum = (Integer) argumentsMap.get("cacheImageNum");
-        Double scale = (Double) argumentsMap.get("scale");
-        Integer cropHeight = (Integer) argumentsMap.get("cropHeight");
-        Integer cropWidth = (Integer) argumentsMap.get("cropWidth");
-        Double enlargeRatio = (Double) argumentsMap.get("enlargeRatio");
-        Double faceFarRatio = (Double) argumentsMap.get("faceFarRatio");
-        Double faceClosedRatio = (Double) argumentsMap.get("faceClosedRatio");
-        Integer secType = (Integer) argumentsMap.get("secType");
+        Integer cropFace = (Integer) argumentsMap.get("cropFace");
         @SuppressWarnings("unchecked")
         List<String> livenessTypes = (List<String>) argumentsMap.get("livenessTypes");
         Boolean livenessRandom = (Boolean) argumentsMap.get("livenessRandom");
         Boolean sund = (Boolean) argumentsMap.get("sund");
         assert minFaceSize != null && notFace != null && brightness != null;
-        assert brightnessMax != null && blurness != null && occlusionLeftEye != null;
-        assert occlusionRightEye != null && occlusionChin != null && cacheImageNum != null;
-        assert occlusionNose != null && occlusionMouth != null && eyeClosed != null && sund != null;
-        assert occlusionLeftContour != null && occlusionRightContour != null && secType != null;
+        assert blurness != null && occlusion != null && sund != null;
         assert headPitch != null && headYaw != null && headRoll != null;
-        assert scale != null && cropHeight != null && cropWidth != null;
-        assert enlargeRatio != null && faceFarRatio != null && faceClosedRatio != null;
-        assert livenessTypes != null && livenessRandom != null;
+        assert cropFace != null && livenessTypes != null && livenessRandom != null;
 
         FaceConfig config = FaceSDKManager.getInstance().getFaceConfig();
         // 设置 最小人脸阈值
         config.setMinFaceSize(minFaceSize);
         // 设置 非人脸阈值
         config.setNotFaceValue(notFace.floatValue());
-        // 设置 图片最小光照阈值
+        // 设置 图片爆光度
         config.setBrightnessValue(brightness.floatValue());
-        // 设置 图片最大光照阈值
-        config.setBrightnessMaxValue(brightnessMax.floatValue());
         // 设置 图像模糊阈值
         config.setBlurnessValue(blurness.floatValue());
-        // 设置 左眼遮挡阀值
-        config.setOcclusionLeftEyeValue(occlusionLeftEye.floatValue());
-        // 设置 右眼遮挡阀值
-        config.setOcclusionRightEyeValue(occlusionRightEye.floatValue());
-        // 设置 鼻子遮挡阀值
-        config.setOcclusionNoseValue(occlusionNose.floatValue());
-        // 设置 嘴巴遮挡阀值
-        config.setOcclusionMouthValue(occlusionMouth.floatValue());
-        // 设置 左脸颊遮挡阀值
-        config.setOcclusionLeftContourValue(occlusionLeftContour.floatValue());
-        // 设置 右脸颊遮挡阀值
-        config.setOcclusionRightContourValue(occlusionRightContour.floatValue());
-        // 设置 下巴遮挡阀值
-        config.setOcclusionChinValue(occlusionChin.floatValue());
+        // 设置 人脸遮挡阀值
+        config.setOcclusionValue(occlusion.floatValue());
         // 设置 低头抬头角度
         config.setHeadPitchValue(headPitch);
         // 设置 左右摇头角度
         config.setHeadYawValue(headYaw);
         // 设置 偏头角度
         config.setHeadRollValue(headRoll);
-        // 设置 闭眼阈值
-        config.setEyeClosedValue(eyeClosed.floatValue());
-        // 设置 图片缓存数量
-        config.setCacheImageNum(cacheImageNum);
-        // 设置 原图缩放系数
-        config.setScale(scale.floatValue());
-        // 设置 抠图宽高的设定，为了保证好的抠图效果，建议高宽比是4：3
-        config.setCropHeight(cropHeight);
-        config.setCropWidth(cropWidth);
-        // 设置 抠图人脸框与背景比例
-        config.setEnlargeRatio(enlargeRatio.floatValue());
-        // 设置 检测框远近比率
-        config.setFaceFarRatio(faceFarRatio.floatValue());
-        config.setFaceClosedRatio(faceClosedRatio.floatValue());
-        // 设置 加密类型，0：Base64加密，上传时image_sec传false；1：百度加密文件加密，上传时image_sec传true
-        config.setSecType(secType);
+        // 设置 裁剪图片大小
+        config.setCropFaceValue(cropFace);
         // 设置 开启提示音
         config.setSound(sund);
-        // 检测超时设置
-        config.setTimeDetectModule(FaceEnvironment.TIME_DETECT_MODULE);
+        // 设置检测使用线程数
+        config.setFaceDecodeNumberOfThreads(2);
         // 设置 动作活体是否随机
         config.setLivenessRandom(livenessRandom);
         // 设置 活体动作

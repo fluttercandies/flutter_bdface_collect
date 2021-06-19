@@ -1,5 +1,4 @@
 <resources>
-
     <style name="DefaultDialog" parent="android:style/Theme.Dialog">
         <item name="android:background">#00000000</item>
         <item name="android:windowBackground">@android:color/transparent</item>

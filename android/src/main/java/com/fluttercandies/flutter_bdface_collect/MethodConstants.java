@@ -10,5 +10,4 @@ public class MethodConstants {
     public static final String Collect = "Collect";
     /// 释放
     public static final String UnInit = "UnInit";
-
 }

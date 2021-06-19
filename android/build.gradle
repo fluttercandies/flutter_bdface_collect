@@ -66,5 +66,5 @@ android {
 
 
 dependencies {
-    implementation "com.baidu.idl.face:platform:4.1"
+    implementation "com.baidu.idl.face:platform:3.2.1"
 }

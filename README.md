@@ -1,21 +1,17 @@
 # flutter_bdface_collect
 
-a baidu face offline collect plugin. Only Android and IOS platforms are supported. 【armeabi-v7a、arm64-v8a】
+a baidu face offline collect plugin. Only Android and IOS platforms are supported. 【armeabi-v7a、arm64-v8a、x86】
 
-百度人脸离线采集插件，只支持安卓和iOS。【armeabi-v7a、arm64-v8a】
+百度人脸离线采集插件，只支持安卓和iOS。【armeabi-v7a、arm64-v8a、x86】
 
-# PS: SDK only supports two CPU architectures. 【armeabi-v7a、arm64-v8a】
-# PS: SDK 只支持两种 CPU 架构. 【armeabi-v7a、arm64-v8a】
-
+## SDK Version
+| Platform | Version |
+|   ----   |   ----  |
+|  Android |   3.2.1 |
+|   iOS    |    3.1  |
 
 ## Preparing for use
 ### Android
-在 `AndroidManifest.xml` 的 `application` 标签内添加以下内容：
-```xml
-<!--将 com.baidu.idl.face.demo 替换成您安卓工程的包名-->
-<provider android:authorities="com.baidu.idl.face.demo.liantian.ac.provider"
-    android:name="com.baidu.liantian.LiantianProvider" android:exported="true"/>
-```
 在 Android 项目的`app/src/main/assets` 目录下放入百度离线采集SDK的Android授权文件，文件名固定为 `idl-license.face-android`
 SDK 会校验 apk 签名，请使用申请授权相符的签名证书
 ### iOS
@@ -47,21 +43,12 @@ SDK 会校验 apk 签名，请使用申请授权相符的签名证书
     FaceConfig config = FaceConfig(livenessTypes: Set.from(LivenessType.all.sublist(1, 4)));
     CollectRresult res = await FlutterBdfaceCollect.instance.collect(config);
     print('采集错误结果:${res.error.isNotEmpty} 内容：${res.error}');
-    print('采集原图imageCropBase64:${res.imageSrcBase64.isNotEmpty}');
-    print('采集抠图imageSrcBase64:${res.imageCropBase64.isNotEmpty}');
+    print('采集图片imageBase64:${res.imageBase64.isNotEmpty}');
 ```
 ### UnInit 释放
 ```dart
     FlutterBdfaceCollect.instance.unInit();
 ```
-
-## 常见问题
-### iOS
-* 编译时报`duplicate output file '***********/build/ios/Debug-iphoneos/Runner.app/Assets.car' on task:`
-  
-    在 `Podfile`文件里添加一行
-  
-    ```install! 'cocoapods', :disable_input_output_paths => true```
 
 
 

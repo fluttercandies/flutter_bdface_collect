@@ -3,28 +3,26 @@
  */
 package com.fluttercandies.flutter_bdface_collect;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -32,44 +30,32 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.baidu.aip.face.stat.Ast;
 import com.baidu.idl.face.platform.FaceConfig;
-import com.baidu.idl.face.platform.FaceEnvironment;
 import com.baidu.idl.face.platform.FaceSDKManager;
-import com.baidu.idl.face.platform.FaceStatusNewEnum;
+import com.baidu.idl.face.platform.FaceStatusEnum;
 import com.baidu.idl.face.platform.ILivenessStrategy;
 import com.baidu.idl.face.platform.ILivenessStrategyCallback;
-import com.baidu.idl.face.platform.ILivenessViewCallback;
-import com.baidu.idl.face.platform.LivenessTypeEnum;
-import com.baidu.idl.face.platform.manager.TimeManager;
-import com.baidu.idl.face.platform.model.FaceExtInfo;
-import com.baidu.idl.face.platform.model.ImageInfo;
-import com.baidu.idl.face.platform.stat.Ast;
 import com.baidu.idl.face.platform.utils.APIUtils;
 import com.baidu.idl.face.platform.utils.Base64Utils;
-import com.baidu.idl.face.platform.utils.DensityUtils;
-import com.fluttercandies.flutter_bdface_collect.utils.BrightnessUtils;
-import com.fluttercandies.flutter_bdface_collect.utils.CameraPreviewUtils;
+import com.baidu.idl.face.platform.utils.CameraPreviewUtils;
 import com.fluttercandies.flutter_bdface_collect.utils.CameraUtils;
 import com.fluttercandies.flutter_bdface_collect.utils.VolumeUtils;
 import com.fluttercandies.flutter_bdface_collect.widget.FaceDetectRoundView;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 活体检测接口
  */
-public class FaceLivenessActivity extends BaseActivity implements
+public class FaceLivenessActivity extends Activity implements
         SurfaceHolder.Callback,
         Camera.PreviewCallback,
         Camera.ErrorCallback,
         VolumeUtils.VolumeCallback,
-        ILivenessStrategyCallback,
-        ILivenessViewCallback, TimeoutDialog.OnTimeoutDialogClickListener {
+        ILivenessStrategyCallback {
 
     public static final String TAG = FaceLivenessActivity.class.getSimpleName();
 
@@ -82,12 +68,9 @@ public class FaceLivenessActivity extends BaseActivity implements
     protected ImageView mSoundView;
     protected ImageView mSuccessView;
     protected TextView mTipsTopView;
+    protected TextView mTipsBottomView;
     protected FaceDetectRoundView mFaceDetectRoundView;
     protected LinearLayout mImageLayout;
-    protected LinearLayout mImageLayout2;
-    private RelativeLayout mRelativeAddImageView;
-    private ImageView mImageAnim;
-    public View mViewBg;
     // 人脸信息
     protected FaceConfig mFaceConfig;
     protected ILivenessStrategy mILivenessStrategy;
@@ -100,6 +83,7 @@ public class FaceLivenessActivity extends BaseActivity implements
     protected Drawable mTipsIcon;
     // 状态标识
     protected volatile boolean mIsEnableSound = true;
+    protected HashMap<String, String> mBase64ImageMap = new HashMap<String, String>();
     protected boolean mIsCreateSurface = false;
     protected boolean mIsCompletion = false;
     // 相机
@@ -112,19 +96,11 @@ public class FaceLivenessActivity extends BaseActivity implements
     // 监听系统音量广播
     protected BroadcastReceiver mVolumeReceiver;
 
-    private Context mContext;
-    private AnimationDrawable mAnimationDrawable;
-    private LivenessTypeEnum mLivenessType = null;
-    // 超时 Dialog
-    private TimeoutDialog mTimeoutDialog;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setScreenBright();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_face_liveness_v3100);
-        mContext = FaceLivenessActivity.this;
         DisplayMetrics dm = new DisplayMetrics();
         Display display = this.getWindowManager().getDefaultDisplay();
         display.getMetrics(dm);
@@ -136,7 +112,7 @@ public class FaceLivenessActivity extends BaseActivity implements
 
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int vol = am.getStreamVolume(AudioManager.STREAM_MUSIC);
-        mIsEnableSound = vol > 0 ? mFaceConfig.isSound() : false;
+        mIsEnableSound = vol > 0 ? mFaceConfig.isSound : false;
 
         mRootView = this.findViewById(R.id.liveness_root_layout);
         mFrameLayout = (FrameLayout) mRootView.findViewById(R.id.liveness_surface_layout);
@@ -165,61 +141,26 @@ public class FaceLivenessActivity extends BaseActivity implements
         });
 
         mFaceDetectRoundView = (FaceDetectRoundView) mRootView.findViewById(R.id.liveness_face_round);
-        mFaceDetectRoundView.setIsActiveLive(true);
         mCloseView = (ImageView) mRootView.findViewById(R.id.liveness_close);
         mSoundView = (ImageView) mRootView.findViewById(R.id.liveness_sound);
         mSoundView.setImageResource(mIsEnableSound ?
-                R.mipmap.icon_titlebar_voice2 : R.drawable.collect_image_voice_selector);
-        mSoundView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mIsEnableSound = !mIsEnableSound;
-                mSoundView.setImageResource(mIsEnableSound ?
-                        R.mipmap.icon_titlebar_voice2 : R.drawable.collect_image_voice_selector);
-                if (mILivenessStrategy != null) {
-                    mILivenessStrategy.setLivenessStrategySoundEnable(mIsEnableSound);
-                }
+                R.mipmap.ic_enable_sound_ext : R.mipmap.ic_disable_sound_ext);
+        mSoundView.setOnClickListener(v -> {
+            mIsEnableSound = !mIsEnableSound;
+            mSoundView.setImageResource(mIsEnableSound ?
+                    R.mipmap.ic_enable_sound_ext : R.mipmap.ic_disable_sound_ext);
+            if (mILivenessStrategy != null) {
+                mILivenessStrategy.setLivenessStrategySoundEnable(mIsEnableSound);
             }
         });
         mTipsTopView = (TextView) mRootView.findViewById(R.id.liveness_top_tips);
+        mTipsBottomView = (TextView) mRootView.findViewById(R.id.liveness_bottom_tips);
         mSuccessView = (ImageView) mRootView.findViewById(R.id.liveness_success_image);
 
         mImageLayout = (LinearLayout) mRootView.findViewById(R.id.liveness_result_image_layout);
-        mImageLayout2 = (LinearLayout) mRootView.findViewById(R.id.liveness_result_image_layout2);
-        mRelativeAddImageView = (RelativeLayout) mRootView.findViewById(R.id.relative_add_image_view);
-        addImageView();
-        mViewBg = findViewById(R.id.view_live_bg);
-    }
-
-    /**
-     * 设置屏幕亮度
-     */
-    private void setScreenBright() {
-        int currentBright = BrightnessUtils.getScreenBrightness(this);
-        BrightnessUtils.setBrightness(this, currentBright + 100);
-    }
-
-    /**
-     * 动态加载ImageView
-     */
-    private void addImageView() {
-        mFaceDetectRoundView.post(new Runnable() {
-            @Override
-            public void run() {
-                mImageAnim = new ImageView(FaceLivenessActivity.this);
-                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup
-                        .LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                layoutParams.height = DensityUtils.dip2px(mContext, 110); // 设置图片的高度
-                layoutParams.width = DensityUtils.dip2px(mContext, 87);   // 设置图片的宽度
-                float halfHeight = mFaceDetectRoundView.getHeight() / 2;
-                layoutParams.setMargins(0, (int) (halfHeight - (halfHeight * FaceDetectRoundView.HEIGHT_RATIO))
-                        - layoutParams.height / 2, 0, 0);
-                layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-                mImageAnim.setLayoutParams(layoutParams);
-                mImageAnim.setScaleType(ImageView.ScaleType.FIT_XY);  // 使图片充满控件大小
-                mRelativeAddImageView.addView(mImageAnim);
-            }
-        });
+        if (mBase64ImageMap != null) {
+            mBase64ImageMap.clear();
+        }
     }
 
     @Override
@@ -227,35 +168,27 @@ public class FaceLivenessActivity extends BaseActivity implements
         super.onResume();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         mVolumeReceiver = VolumeUtils.registerVolumeReceiver(this, this);
-        if (mFaceDetectRoundView != null) {
-            mFaceDetectRoundView.setTipTopText("请将脸移入取景框");
+        if (mTipsTopView != null) {
+            mTipsTopView.setText(R.string.detect_face_in);
         }
         startPreview();
     }
 
     @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.e(TAG, "onRestart");
+    public void onPause() {
+        super.onPause();
+        stopPreview();
     }
 
     @Override
-    public void onPause() {
+    public void onStop() {
         if (mILivenessStrategy != null) {
             mILivenessStrategy.reset();
         }
         VolumeUtils.unRegisterVolumeReceiver(this, mVolumeReceiver);
         mVolumeReceiver = null;
-        mFaceDetectRoundView.setProcessCount(0,
-                mFaceConfig.getLivenessTypeList().size());
-        super.onPause();
-        stopPreview();
-        mIsCompletion = false;
-    }
-
-    @Override
-    public void onStop() {
         super.onStop();
+        stopPreview();
     }
 
     @Override
@@ -271,7 +204,7 @@ public class FaceLivenessActivity extends BaseActivity implements
                 int cv = am.getStreamVolume(AudioManager.STREAM_MUSIC);
                 mIsEnableSound = cv > 0;
                 mSoundView.setImageResource(mIsEnableSound
-                        ? R.mipmap.icon_titlebar_voice2 : R.mipmap.icon_titlebar_voice1);
+                        ? R.mipmap.ic_enable_sound_ext : R.mipmap.ic_disable_sound_ext);
                 if (mILivenessStrategy != null) {
                     mILivenessStrategy.setLivenessStrategySoundEnable(mIsEnableSound);
                 }
@@ -344,7 +277,6 @@ public class FaceLivenessActivity extends BaseActivity implements
 
         mPreviewWidth = point.x;
         mPreviewHight = point.y;
-        // Log.e(TAG, "x = " + mPreviewWidth + " y = " + mPreviewHight);
         // Preview 768,432
 
         if (mILivenessStrategy != null) {
@@ -462,7 +394,7 @@ public class FaceLivenessActivity extends BaseActivity implements
         }
 
         if (mILivenessStrategy == null) {
-            mILivenessStrategy = FaceSDKManager.getInstance().getLivenessStrategyModule(this);
+            mILivenessStrategy = FaceSDKManager.getInstance().getLivenessStrategyModule();
             mILivenessStrategy.setPreviewDegree(mPreviewDegree);
             mILivenessStrategy.setLivenessStrategySoundEnable(mIsEnableSound);
 
@@ -479,188 +411,115 @@ public class FaceLivenessActivity extends BaseActivity implements
     }
 
     @Override
-    public void onLivenessCompletion(FaceStatusNewEnum status, String message, HashMap<String, ImageInfo> base64ImageCropMap,
-                                     HashMap<String, ImageInfo> base64ImageSrcMap, int currentLivenessCount) {
+    public void onLivenessCompletion(FaceStatusEnum status, String message,
+                                     HashMap<String, String> base64ImageMap) {
         if (mIsCompletion) {
             return;
         }
 
-        onRefreshView(status, message, currentLivenessCount);
+        onRefreshView(status, message);
 
-        if (status == FaceStatusNewEnum.OK) {
+        if (status == FaceStatusEnum.OK) {
             mIsCompletion = true;
-            // saveAllImage(base64ImageCropMap, base64ImageSrcMap);
+            saveImage(base64ImageMap);
         }
-        // 打点
         Ast.getInstance().faceHit("liveness");
-        if (status == FaceStatusNewEnum.OK && mIsCompletion) {
+        if (status == FaceStatusEnum.OK && mIsCompletion) {
             // 获取最优图片
-            getBestImage(base64ImageCropMap, base64ImageSrcMap);
-        } else if (status == FaceStatusNewEnum.DetectRemindCodeTimeout) {
-            if (mViewBg != null) {
-                mViewBg.setVisibility(View.VISIBLE);
-            }
-            showMessageDialog();
+            FlutterBdfaceCollectPlugin.imageBase64 = base64ImageMap.get("bestImage0");
+            setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE);
+            finish();
+        } else if (status == FaceStatusEnum.Error_DetectTimeout ||
+                status == FaceStatusEnum.Error_LivenessTimeout ||
+                status == FaceStatusEnum.Error_Timeout) {
+            finish();
         }
     }
 
-    /**
-     * 获取最优图片
-     *
-     * @param imageCropMap 抠图集合
-     * @param imageSrcMap  原图集合
-     */
-    private void getBestImage(HashMap<String, ImageInfo> imageCropMap, HashMap<String, ImageInfo> imageSrcMap) {
-        // 获取加密方式
-        int secType = mFaceConfig.getSecType();
-        // 将抠图集合中的图片按照质量降序排序，最终选取质量最优的一张抠图图片
-        if (imageCropMap != null && imageCropMap.size() > 0) {
-            List<Map.Entry<String, ImageInfo>> list1 = new ArrayList<>(imageCropMap.entrySet());
-            Collections.sort(list1, (o1, o2) -> {
-                String[] key1 = o1.getKey().split("_");
-                String score1 = key1[2];
-                String[] key2 = o2.getKey().split("_");
-                String score2 = key2[2];
-                // 降序排序
-                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
-            });
-
-            if (secType == 0) {
-                FlutterBdfaceCollectPlugin.imageCropBase64 = list1.get(0).getValue().getBase64();
-            } else {
-                FlutterBdfaceCollectPlugin.imageCropBase64 = list1.get(0).getValue().getSecBase64();
-            }
-        }
-
-        // 将原图集合中的图片按照质量降序排序，最终选取质量最优的一张原图图片
-        if (imageSrcMap != null && imageSrcMap.size() > 0) {
-            List<Map.Entry<String, ImageInfo>> list2 = new ArrayList<>(imageSrcMap.entrySet());
-            Collections.sort(list2, (o1, o2) -> {
-                String[] key1 = o1.getKey().split("_");
-                String score1 = key1[2];
-                String[] key2 = o2.getKey().split("_");
-                String score2 = key2[2];
-                // 降序排序
-                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
-            });
-            if (secType == 0) {
-                FlutterBdfaceCollectPlugin.imageSrcBase64 = list2.get(0).getValue().getBase64();
-            } else {
-                FlutterBdfaceCollectPlugin.imageSrcBase64 = list2.get(0).getValue().getSecBase64();
-            }
-        }
-        setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE);
-        finish();
-    }
-
-
-    private void showMessageDialog() {
-        mTimeoutDialog = new TimeoutDialog(this);
-        mTimeoutDialog.setDialogListener(this);
-        mTimeoutDialog.setCanceledOnTouchOutside(false);
-        mTimeoutDialog.setCancelable(false);
-        mTimeoutDialog.show();
-        onPause();
-    }
-
-    private void onRefreshView(FaceStatusNewEnum status, String message, int currentLivenessCount) {
+    private void onRefreshView(FaceStatusEnum status, String message) {
         switch (status) {
             case OK:
-            case FaceLivenessActionComplete:
-            case DetectRemindCodeTooClose:
-            case DetectRemindCodeTooFar:
-            case DetectRemindCodeBeyondPreviewFrame:
-            case DetectRemindCodeNoFaceDetected:
-                // onRefreshTipsView(false, message);
-                mFaceDetectRoundView.setTipTopText(message);
-                mFaceDetectRoundView.setTipSecondText("");
-                mFaceDetectRoundView.setProcessCount(currentLivenessCount,
-                        mFaceConfig.getLivenessTypeList().size());
-                // onRefreshSuccessView(true);
-                stopAnim();
+            case Liveness_OK:
+            case Liveness_Completion:
+                onRefreshTipsView(false, message);
+                mTipsBottomView.setText("");
+                mFaceDetectRoundView.processDrawState(false);
+                onRefreshSuccessView(true);
                 break;
-            case FaceLivenessActionTypeLiveEye:
-            case FaceLivenessActionTypeLiveMouth:
-            case FaceLivenessActionTypeLivePitchUp:
-            case FaceLivenessActionTypeLivePitchDown:
-            case FaceLivenessActionTypeLiveYawLeft:
-            case FaceLivenessActionTypeLiveYawRight:
-            case FaceLivenessActionTypeLiveYaw:
-                mFaceDetectRoundView.setTipTopText(message);
-                mFaceDetectRoundView.setTipSecondText("");
-                mFaceDetectRoundView.setProcessCount(currentLivenessCount,
-                        mFaceConfig.getLivenessTypeList().size());
-                // onRefreshTipsView(false, message);
-                // onRefreshSuccessView(false);
+            case Detect_DataNotReady:
+            case Liveness_Eye:
+            case Liveness_Mouth:
+            case Liveness_HeadUp:
+            case Liveness_HeadDown:
+            case Liveness_HeadLeft:
+            case Liveness_HeadRight:
+            case Liveness_HeadLeftRight:
+                onRefreshTipsView(false, message);
+                mTipsBottomView.setText("");
+                mFaceDetectRoundView.processDrawState(false);
+                onRefreshSuccessView(false);
                 break;
-            case DetectRemindCodePitchOutofUpRange:
-            case DetectRemindCodePitchOutofDownRange:
-            case DetectRemindCodeYawOutofLeftRange:
-            case DetectRemindCodeYawOutofRightRange:
-                mFaceDetectRoundView.setTipTopText("请保持正脸");
-                mFaceDetectRoundView.setTipSecondText(message);
-                mFaceDetectRoundView.setProcessCount(currentLivenessCount,
-                        mFaceConfig.getLivenessTypeList().size());
-                // onRefreshSuccessView(false);
-                // onRefreshTipsView(true, message);
-                break;
-            case FaceLivenessActionCodeTimeout:    // 动作超时，播放教程动画
-                mFaceDetectRoundView.setProcessCount(currentLivenessCount,
-                        mFaceConfig.getLivenessTypeList().size());
-                // 帧动画开启
-                if (mRelativeAddImageView.getVisibility() == View.INVISIBLE) {
-                    mRelativeAddImageView.setVisibility(View.VISIBLE);
-                }
-                loadAnimSource();
-                // 监听帧动画时间
-                int duration = 0;
-                for (int i = 0; i < mAnimationDrawable.getNumberOfFrames(); i++) {
-                    // 计算动画播放的时间
-                    duration += mAnimationDrawable.getDuration(i);
-                }
-                TimeManager.getInstance().setActiveAnimTime(duration);
+            case Detect_PitchOutOfUpMaxRange:
+            case Detect_PitchOutOfDownMaxRange:
+            case Detect_PitchOutOfLeftMaxRange:
+            case Detect_PitchOutOfRightMaxRange:
+                onRefreshTipsView(true, message);
+                mTipsBottomView.setText(message);
+                mFaceDetectRoundView.processDrawState(true);
+                onRefreshSuccessView(false);
                 break;
             default:
-                mFaceDetectRoundView.setTipTopText("请保持正脸");
-                mFaceDetectRoundView.setTipSecondText(message);
-                mFaceDetectRoundView.setProcessCount(currentLivenessCount,
-                        mFaceConfig.getLivenessTypeList().size());
-                // onRefreshSuccessView(false);
-                // onRefreshTipsView(false, message);
-                break;
+                onRefreshTipsView(false, message);
+                mTipsBottomView.setText("");
+                mFaceDetectRoundView.processDrawState(true);
+                onRefreshSuccessView(false);
         }
     }
 
-    // 加载动画
-    private void loadAnimSource() {
-        if (mLivenessType != null) {
-            switch (mLivenessType) {
-                case Eye:
-                    mImageAnim.setBackgroundResource(R.drawable.anim_eye);
-                    break;
-//                case HeadLeftOrRight:
-//                    mImageAnim.setBackgroundResource(R.drawable.anim_shake);
-//                    break;
-                case HeadLeft:
-                    mImageAnim.setBackgroundResource(R.drawable.anim_left);
-                    break;
-                case HeadRight:
-                    mImageAnim.setBackgroundResource(R.drawable.anim_right);
-                    break;
-                case HeadDown:
-                    mImageAnim.setBackgroundResource(R.drawable.anim_down);
-                    break;
-                case HeadUp:
-                    mImageAnim.setBackgroundResource(R.drawable.anim_up);
-                    break;
-                case Mouth:
-                    mImageAnim.setBackgroundResource(R.drawable.anim_mouth);
-                    break;
-                default:
-                    break;
+    private void onRefreshTipsView(boolean isAlert, String message) {
+        if (isAlert) {
+            if (mTipsIcon == null) {
+                mTipsIcon = getResources().getDrawable(R.mipmap.ic_warning);
+                mTipsIcon.setBounds(0, 0, (int) (mTipsIcon.getMinimumWidth() * 0.7f),
+                        (int) (mTipsIcon.getMinimumHeight() * 0.7f));
+                mTipsTopView.setCompoundDrawablePadding(15);
             }
-            mAnimationDrawable = (AnimationDrawable) mImageAnim.getBackground();
-            mAnimationDrawable.start();
+            mTipsTopView.setBackgroundResource(R.drawable.bg_tips);
+            mTipsTopView.setText(R.string.detect_standard);
+            mTipsTopView.setCompoundDrawables(mTipsIcon, null, null, null);
+        } else {
+            mTipsTopView.setBackgroundResource(R.drawable.bg_tips_no);
+            mTipsTopView.setCompoundDrawables(null, null, null, null);
+            if (!TextUtils.isEmpty(message)) {
+                mTipsTopView.setText(message);
+            }
+        }
+    }
+
+    private void onRefreshSuccessView(boolean isShow) {
+        if (mSuccessView.getTag() == null) {
+            Rect rect = mFaceDetectRoundView.getFaceRoundRect();
+            RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) mSuccessView.getLayoutParams();
+            rlp.setMargins(
+                    rect.centerX() - (mSuccessView.getWidth() / 2),
+                    rect.top - (mSuccessView.getHeight() / 2),
+                    0,
+                    0);
+            mSuccessView.setLayoutParams(rlp);
+            mSuccessView.setTag("setlayout");
+        }
+        mSuccessView.setVisibility(isShow ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    private void saveImage(HashMap<String, String> imageMap) {
+        Set<Map.Entry<String, String>> sets = imageMap.entrySet();
+        Bitmap bmp = null;
+        mImageLayout.removeAllViews();
+        for (Map.Entry<String, String> entry : sets) {
+            bmp = base64ToBitmap(entry.getValue());
+            ImageView iv = new ImageView(this);
+            iv.setImageBitmap(bmp);
+            mImageLayout.addView(iv, new LinearLayout.LayoutParams(300, 300));
         }
     }
 
@@ -669,116 +528,4 @@ public class FaceLivenessActivity extends BaseActivity implements
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }
 
-    @Override
-    public void setCurrentLiveType(LivenessTypeEnum liveType) {
-        mLivenessType = liveType;
-    }
-
-    @Override
-    public void viewReset() {
-        mFaceDetectRoundView.setProcessCount(0, 1);
-    }
-
-    @Override
-    public void animStop() {
-        stopAnim();
-    }
-
-    @Override
-    public void setFaceInfo(FaceExtInfo faceInfo) {
-        // TODO：传递FaceInfo信息，便于调试画人脸检测框和人脸检测区域（使用时，将注释放开）
-        // if (mFaceDetectRoundView != null) {
-        //     mFaceDetectRoundView.setFaceInfo(faceInfo);
-        // }
-    }
-
-    private void stopAnim() {
-        if (mAnimationDrawable != null) {
-            mAnimationDrawable.stop();
-            mAnimationDrawable = null;
-        }
-        if (mRelativeAddImageView.getVisibility() == View.VISIBLE) {
-            mRelativeAddImageView.setVisibility(View.INVISIBLE);
-        }
-    }
-
-    // ----------------------------------------供调试用----------------------------------------------
-    private void saveAllImage(HashMap<String, ImageInfo> imageCropMap, HashMap<String, ImageInfo> imageSrcMap) {
-        if (imageCropMap != null && imageCropMap.size() > 0) {
-            List<Map.Entry<String, ImageInfo>> list1 = new ArrayList<>(imageCropMap.entrySet());
-            Collections.sort(list1, new Comparator<Map.Entry<String, ImageInfo>>() {
-
-                @Override
-                public int compare(Map.Entry<String, ImageInfo> o1,
-                                   Map.Entry<String, ImageInfo> o2) {
-                    String[] key1 = o1.getKey().split("_");
-                    String score1 = key1[2];
-                    String[] key2 = o2.getKey().split("_");
-                    String score2 = key2[2];
-                    // 降序排序
-                    return Float.valueOf(score2).compareTo(Float.valueOf(score1));
-                }
-            });
-            setImageView1(list1);
-        }
-
-        if (imageSrcMap != null && imageSrcMap.size() > 0) {
-            List<Map.Entry<String, ImageInfo>> list2 = new ArrayList<>(imageSrcMap.entrySet());
-            Collections.sort(list2, new Comparator<Map.Entry<String, ImageInfo>>() {
-
-                @Override
-                public int compare(Map.Entry<String, ImageInfo> o1,
-                                   Map.Entry<String, ImageInfo> o2) {
-                    String[] key1 = o1.getKey().split("_");
-                    String score1 = key1[2];
-                    String[] key2 = o2.getKey().split("_");
-                    String score2 = key2[2];
-                    // 降序排序
-                    return Float.valueOf(score2).compareTo(Float.valueOf(score1));
-                }
-            });
-            setImageView2(list2);
-        }
-    }
-
-    private void setImageView1(List<Map.Entry<String, ImageInfo>> list) {
-        Bitmap bmp;
-        mImageLayout.removeAllViews();
-        for (Map.Entry<String, ImageInfo> entry : list) {
-            bmp = base64ToBitmap(entry.getValue().getBase64());
-            ImageView iv = new ImageView(this);
-            iv.setImageBitmap(bmp);
-            mImageLayout.addView(iv, new LinearLayout.LayoutParams(300, 300));
-        }
-    }
-
-    private void setImageView2(List<Map.Entry<String, ImageInfo>> list) {
-        Bitmap bmp;
-        mImageLayout2.removeAllViews();
-        for (Map.Entry<String, ImageInfo> entry : list) {
-            bmp = base64ToBitmap(entry.getValue().getBase64());
-            ImageView iv = new ImageView(this);
-            iv.setImageBitmap(bmp);
-            mImageLayout2.addView(iv, new LinearLayout.LayoutParams(300, 300));
-        }
-    }
-
-    @Override
-    public void onRecollect() {
-        if (mTimeoutDialog != null) {
-            mTimeoutDialog.dismiss();
-        }
-        if (mViewBg != null) {
-            mViewBg.setVisibility(View.GONE);
-        }
-        onResume();
-    }
-
-    @Override
-    public void onReturn() {
-        if (mTimeoutDialog != null) {
-            mTimeoutDialog.dismiss();
-        }
-        finish();
-    }
 }

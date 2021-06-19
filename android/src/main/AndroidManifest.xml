@@ -1,88 +1,28 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.fluttercandies.flutter_bdface_collect">
-     <!-- 权限级别: dangerous -->
+          package="com.fluttercandies.flutter_bdface_collect">
+
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- 权限级别: normal -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.hardware.camera.autofocus" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-    <!-- 需要使用Feature -->
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.front"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.flash"
-        android:required="false" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application>
         <!-- 活体图像采集界面 -->
         <activity
-            android:name=".FaceLivenessActivity"
-            android:hardwareAccelerated="true"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme_NoTitle" />
+                android:name=".FaceLivenessActivity"
+                android:hardwareAccelerated="true"
+                android:launchMode="singleTop"
+                android:screenOrientation="portrait"
+                android:theme="@style/Theme_NoTitle"/>
 
         <!-- 人脸跟踪采集界面 -->
         <activity
-            android:name=".FaceDetectActivity"
-            android:hardwareAccelerated="true"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme_NoTitle" />
-
-        <!--安全设备指纹接入 start-->
-        <activity
-                android:name="com.baidu.liantian.LiantianActivity"
-                android:exported="true"
-                android:theme="@android:style/Theme.Translucent"
-                android:excludeFromRecents="true"
-                android:launchMode="standard">
-            <intent-filter>
-                <action android:name="com.baidu.action.Liantian.VIEW"/>
-                <category android:name="com.baidu.category.liantian"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-        </activity>
-
-        <receiver android:name="com.baidu.liantian.LiantianReceiver" android:exported="false">
-            <intent-filter>
-                <action android:name="com.baidu.action.Liantian.VIEW"/>
-                <category android:name="com.baidu.category.liantian"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-            <intent-filter android:priority="2147483647">
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-        </receiver>
-        <!--将com.baidu.idl.face.demo替换成您工程的包名-->
-<!--        <provider android:authorities="com.baidu.idl.face.demo.liantian.ac.provider"-->
-<!--            android:name="com.baidu.liantian.LiantianProvider" android:exported="true"/>-->
-        <service
-                android:name="com.baidu.liantian.LiantianService"
-                android:exported="false">
-            <intent-filter>
-                <action android:name="com.baidu.action.Liantian.VIEW"/>
-                <category android:name="com.baidu.category.liantian"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-        </service>
-
-        <meta-data android:name="seckey_avscan" android:value="660346260f8a841a04ec2a56815b421b"/>
-        <meta-data android:name="appkey_avscan" android:value="100034"/>
-        <!--安全设备指纹接入 end-->
+                android:name=".FaceDetectActivity"
+                android:hardwareAccelerated="true"
+                android:launchMode="singleTop"
+                android:screenOrientation="portrait"
+                android:theme="@style/Theme_NoTitle"/>
     </application>
 </manifest>
