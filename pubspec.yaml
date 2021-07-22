@@ -1,6 +1,6 @@
 name: flutter_bdface_collect
 description: a baidu face collect plugin. Only Android and IOS platforms are supported.
-version: 1.0.0-oldsdk
+version: 1.1.0-oldsdk
 homepage: https://github.com/fluttercandies/flutter_bdface_collect
 publish_to: https://pub.dev
 environment:
@@ -10,7 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  permission_handler: ^8.0.0
 
 dev_dependencies:
   flutter_test:
