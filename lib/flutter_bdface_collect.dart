@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import 'constants.dart';
 import 'model.dart';
@@ -25,22 +24,22 @@ class _ServiceApi {
 
   /// 初始化
   Future<String?> init(String licenseId) async {
-    var s = await Permission.camera.status;
-    if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
-      s = await Permission.camera.request();
-      if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
-        return "errCode: OTHER_ERROR, errMsg: 无相机使用权限";
-      }
-    }
-    if (Platform.isAndroid) {
-      s = await Permission.storage.status;
-      if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
-        s = await Permission.storage.request();
-        if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
-          return "errCode: OTHER_ERROR, errMsg: 无本地存储权限";
-        }
-      }
-    }
+    // var s = await Permission.camera.status;
+    // if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
+    //   s = await Permission.camera.request();
+    //   if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
+    //     return "errCode: OTHER_ERROR, errMsg: 无相机使用权限";
+    //   }
+    // }
+    // if (Platform.isAndroid) {
+    //   s = await Permission.storage.status;
+    //   if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
+    //     s = await Permission.storage.request();
+    //     if (![PermissionStatus.granted, PermissionStatus.limited].contains(s)) {
+    //       return "errCode: OTHER_ERROR, errMsg: 无本地存储权限";
+    //     }
+    //   }
+    // }
     final String? err = await _methodChannel.invokeMethod<String>(
         MethodConstants.Init, licenseId);
     return err;

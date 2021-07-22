@@ -14,6 +14,9 @@ a baidu face offline collect plugin. Only Android and IOS platforms are supporte
 |   iOS    |   4.1   |
 
 ## Preparing for use
+
+PS：已注释隐私授权检查，故使用前请自行检查授权
+
 ### Android
 在 `AndroidManifest.xml` 的 `application` 标签内添加以下内容：
 ```xml
@@ -24,8 +27,6 @@ a baidu face offline collect plugin. Only Android and IOS platforms are supporte
 在 Android 项目的`app/src/main/assets` 目录下放入百度离线采集SDK的Android授权文件，文件名固定为 `idl-license.face-android`
 SDK 会校验 apk 签名，请使用申请授权相符的签名证书
 ### iOS
-由于使用了[permission_handler](https://pub.dev/packages/permission_handler) 
-校验隐私授权，请按照permission_handler的使用文档添加使用相机的权限声明。
 
 在 `Info.plist` 的 `dict` 标签内添加以下内容
 ```xml
