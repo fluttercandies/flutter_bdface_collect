@@ -1,3 +1,8 @@
+## 1.1.2
+
+* fix IOS device no message callback when close auth page .
+* 修复 IOS设备关闭验证页时没有消息回调的情况
+* 
 ## 1.1.1
 
 * Delete redundant binary files of IOS platform.
