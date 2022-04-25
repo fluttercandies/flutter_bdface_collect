@@ -198,7 +198,7 @@
 - (void)closeAction {
     _hasFinished = YES;
     self.videoCapture.runningStatus = NO;
-    self.completion(NULL);
+    self.completion(NULL, NULL);
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 

@@ -102,7 +102,7 @@
         lvc = [[DetectionViewController alloc] init];
     }
     lvc.completion = ^(NSDictionary* images, UIImage* originImage){
-        if (images[@"bestImage"] != nil && [images[@"bestImage"] count] != 0) {
+        if (images != nil && images[@"bestImage"] != nil && [images[@"bestImage"] count] != 0) {
             result(@{@"imageBase64":[images[@"bestImage"] lastObject]});
         } else {
             result(@{@"error":@"识别失败"});
