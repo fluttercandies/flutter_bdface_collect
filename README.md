@@ -18,12 +18,6 @@ a baidu face offline collect plugin. Only Android and IOS platforms are supporte
 PS：已注释隐私授权检查，故使用前请自行检查授权
 
 ### Android
-在 `AndroidManifest.xml` 的 `application` 标签内添加以下内容：
-```xml
-<!--将 com.baidu.idl.face.demo 替换成您安卓工程的包名-->
-<provider android:authorities="com.baidu.idl.face.demo.liantian.ac.provider"
-    android:name="com.baidu.liantian.LiantianProvider" android:exported="true"/>
-```
 在 Android 项目的`app/src/main/assets` 目录下放入百度离线采集SDK的Android授权文件，文件名固定为 `idl-license.face-android`
 SDK 会校验 apk 签名，请使用申请授权相符的签名证书
 ### iOS
@@ -63,7 +57,7 @@ SDK 会校验 apk 签名，请使用申请授权相符的签名证书
 
 ## 常见问题
 ### iOS
-* 编译时报`duplicate output file '***********/build/ios/Debug-iphoneos/Runner.app/Assets.car' on task:`
+* 编译时报`duplicate output file '***********/Runner.app/Assets.car' on task:`
   
     在 `Podfile`文件里添加一行
   

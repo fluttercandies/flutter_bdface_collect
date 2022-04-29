@@ -1,3 +1,8 @@
+## 1.1.3
+
+* fix Android projects no longer need to modify AndroidManifest.xml
+* 整理 Android项目不再需要修改AndroidManifest.xml
+
 ## 1.1.2
 
 * fix IOS device no message callback when close auth page .

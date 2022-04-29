@@ -68,9 +68,8 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
-        <!--将com.baidu.idl.face.demo替换成您工程的包名-->
-<!--        <provider android:authorities="com.baidu.idl.face.demo.liantian.ac.provider"-->
-<!--            android:name="com.baidu.liantian.LiantianProvider" android:exported="true"/>-->
+        <provider android:authorities="${applicationId}.liantian.ac.provider"
+            android:name="com.baidu.liantian.LiantianProvider" android:exported="true"/>
         <service
                 android:name="com.baidu.liantian.LiantianService"
                 android:exported="false">
