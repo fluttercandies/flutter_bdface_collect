@@ -54,7 +54,5 @@ android {
 
 
 dependencies {
-//    implementation "com.baidu.idl.face:platform:4.1"
-//    implementation fileTree(dir: 'libs', include: ['*.aar'])
     implementation(name: "com.baidu.idl.face.platform-4.1", ext: "aar")
 }
