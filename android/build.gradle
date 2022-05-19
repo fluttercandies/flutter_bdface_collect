@@ -12,23 +12,11 @@ buildscript {
     }
 }
 
-String flutterBdfaceCollectProjectDir = ""
-// 获取当前moudle的dir
-rootProject.allprojects { project ->
-    try {
-        if (project.properties.get("identityPath").toString() == ":flutter_bdface_collect") {
-            flutterBdfaceCollectProjectDir = project.properties.get("projectDir").toString()
-        }
-    } catch (e) {
-    }
-}
 rootProject.allprojects {
-    // 这个闭包是循环所有project, 我们让这个仓库可以被所有module找到
     repositories {
         google()
         jcenter()
-        // 添加这个指向本地的仓库目录
-        maven { url "$flutterBdfaceCollectProjectDir/libs" }
+        flatDir { dirs project(":flutter_bdface_collect").file("libs") }
     }
 }
 
@@ -66,5 +54,7 @@ android {
 
 
 dependencies {
-    implementation "com.baidu.idl.face:platform:4.1"
+//    implementation "com.baidu.idl.face:platform:4.1"
+//    implementation fileTree(dir: 'libs', include: ['*.aar'])
+    implementation(name: "com.baidu.idl.face.platform-4.1", ext: "aar")
 }
