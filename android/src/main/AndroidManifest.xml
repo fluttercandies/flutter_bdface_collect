@@ -64,9 +64,6 @@
                 <category android:name="com.baidu.category.liantian"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
-            <intent-filter android:priority="2147483647">
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
         </receiver>
         <provider android:authorities="${applicationId}.liantian.ac.provider"
             android:name="com.baidu.liantian.LiantianProvider" android:exported="true"/>

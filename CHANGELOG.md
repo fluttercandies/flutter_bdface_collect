@@ -1,3 +1,8 @@
+## 1.1.4
+
+* Remove auto start in Android  
+* 移除安卓端自启
+
 ## 1.1.3
 
 * fix Android projects no longer need to modify AndroidManifest.xml
