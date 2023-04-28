@@ -237,6 +237,10 @@
                 [self warningStatus:CommonStatus warning:@"缓慢低头" conditionMeet:true];
                 [self singleActionSuccess:false];
                 break;
+            case LivenessRemindCodeLiveYaw:
+                [self warningStatus:CommonStatus warning:@"左右摇头" conditionMeet:true];
+                [self singleActionSuccess:false];
+                break;
             case LivenessRemindCodeSingleLivenessFinished:
             {
                 [[IDLFaceLivenessManager sharedInstance] livenessProcessHandler:^(float numberOfLiveness, float numberOfSuccess, LivenessActionType currenActionType) {
@@ -266,6 +270,27 @@
             case LivenessRemindCodeVerifyInitError:
                 [self warningStatus:CommonStatus warning:@"验证失败"];
                 break;
+//            case LivenessRemindCodeVerifyDecryptError:
+//                [self warningStatus:CommonStatus warning:@"验证失败"];
+//                break;
+//            case LivenessRemindCodeVerifyInfoFormatError:
+//                [self warningStatus:CommonStatus warning:@"验证失败"];
+//                break;
+//            case LivenessRemindCodeVerifyExpired:
+//                [self warningStatus:CommonStatus warning:@"验证失败"];
+//                break;
+//            case LivenessRemindCodeVerifyMissRequiredInfo:
+//                [self warningStatus:CommonStatus warning:@"验证失败"];
+//                break;
+//            case LivenessRemindCodeVerifyInfoCheckError:
+//                [self warningStatus:CommonStatus warning:@"验证失败"];
+//                break;
+//            case LivenessRemindCodeVerifyLocalFileError:
+//                [self warningStatus:CommonStatus warning:@"验证失败"];
+//                break;
+//            case LivenessRemindCodeVerifyRemoteDataError:
+//                [self warningStatus:CommonStatus warning:@"验证失败"];
+//                break;
             case LivenessRemindActionCodeTimeout:{
                 [[IDLFaceLivenessManager sharedInstance] livenessProcessHandler:^(float numberOfLiveness, float numberOfSuccess, LivenessActionType currenActionType) {
                     NSLog(@"动作超时 %d %d %d", (int)numberOfLiveness, (int)numberOfSuccess, (int)currenActionType);
@@ -276,8 +301,8 @@
                 break;
             }
             case LivenessRemindCodeConditionMeet: {
-            }
                 break;
+            }
             default:
                 break;
         }

@@ -65,7 +65,10 @@ public final class CameraPreviewUtils {
             } else if (realWidth * realHeight > MAX_PREVIEW_PIXELS) {
                 it.remove();
                 continue;
-            } else if (realHeight % 4 != 0 || realWidth % 4 != 0) {
+            } else if (realHeight > realWidth) {  // 过滤其横屏分辨率
+                it.remove();
+                continue;
+            } else if (realHeight % 2 != 0 || realWidth % 2 != 0) {
                 it.remove();
                 continue;
             } else {

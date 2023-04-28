@@ -60,7 +60,7 @@
     NSNumber* headYaw = faceConfigMap[@"headYaw"];
     NSNumber* headRoll = faceConfigMap[@"headRoll"];
 //    NSNumber* eyeClosed = faceConfigMap[@"eyeClosed"];
-    NSNumber* cacheImageNum = faceConfigMap[@"cacheImageNum"];
+//     NSNumber* cacheImageNum = faceConfigMap[@"cacheImageNum"];
     NSNumber* scale = faceConfigMap[@"scale"];
     NSNumber* cropHeight = faceConfigMap[@"cropHeight"];
     NSNumber* cropWidth = faceConfigMap[@"cropWidth"];
@@ -98,7 +98,7 @@
     // 嘴巴遮设置人脸姿态角阈值阀值
     [[FaceSDKManager sharedInstance] setEulurAngleThrPitch:headPitch.floatValue yaw:headYaw.floatValue roll:headRoll.floatValue];
     // 设置输出图像个数
-    [[FaceSDKManager sharedInstance] setMaxCropImageNum:cacheImageNum.intValue];
+//     [[FaceSDKManager sharedInstance] setMaxCropImageNum:cacheImageNum.intValue];
     // 设置原始图片缩放比例，默认1不缩放，scale 阈值0~1
     [[FaceSDKManager sharedInstance] setImageWithScale:scale.floatValue];
     // 设置截取人脸图片高

@@ -164,7 +164,7 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         Integer headYaw = (Integer) argumentsMap.get("headYaw");
         Integer headRoll = (Integer) argumentsMap.get("headRoll");
         Double eyeClosed = (Double) argumentsMap.get("eyeClosed");
-        Integer cacheImageNum = (Integer) argumentsMap.get("cacheImageNum");
+//        Integer cacheImageNum = (Integer) argumentsMap.get("cacheImageNum");
         Double scale = (Double) argumentsMap.get("scale");
         Integer cropHeight = (Integer) argumentsMap.get("cropHeight");
         Integer cropWidth = (Integer) argumentsMap.get("cropWidth");
@@ -178,7 +178,8 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         Boolean sund = (Boolean) argumentsMap.get("sund");
         assert minFaceSize != null && notFace != null && brightness != null;
         assert brightnessMax != null && blurness != null && occlusionLeftEye != null;
-        assert occlusionRightEye != null && occlusionChin != null && cacheImageNum != null;
+        assert occlusionRightEye != null && occlusionChin != null;
+//        assert occlusionRightEye != null && occlusionChin != null && cacheImageNum != null;
         assert occlusionNose != null && occlusionMouth != null && eyeClosed != null && sund != null;
         assert occlusionLeftContour != null && occlusionRightContour != null && secType != null;
         assert headPitch != null && headYaw != null && headRoll != null;
@@ -220,7 +221,7 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         // 设置 闭眼阈值
         config.setEyeClosedValue(eyeClosed.floatValue());
         // 设置 图片缓存数量
-        config.setCacheImageNum(cacheImageNum);
+//        config.setCacheImageNum(cacheImageNum);
         // 设置 原图缩放系数
         config.setScale(scale.floatValue());
         // 设置 抠图宽高的设定，为了保证好的抠图效果，建议高宽比是4：3

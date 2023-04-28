@@ -176,8 +176,8 @@ int remindCode = -1;
                 [self warningStatus:CommonStatus warning:@"验证失败"];
                 break;
             case DetectRemindCodeConditionMeet: {
-            }
                 break;
+            }
             default:
                 break;
         }

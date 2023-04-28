@@ -26,7 +26,7 @@ android {
     compileSdkVersion 30
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 22
     }
 
     sourceSets {
@@ -54,5 +54,5 @@ android {
 
 
 dependencies {
-    implementation(name: "com.baidu.idl.face.platform-4.1", ext: "aar")
+    implementation(name: "faceplatform-release-4.1.5", ext: "aar")
 }

@@ -49,7 +49,7 @@ class FaceConfig {
   late double eyeClosed;
 
   /// 图片缓存数量	3	建议3~6
-  late int cacheImageNum;
+  // late int cacheImageNum;
 
   /// 原图缩放系数 0.1~1.0
   late double scale;
@@ -92,7 +92,7 @@ class FaceConfig {
       this.headYaw = 18,
       this.headRoll = 20,
       this.eyeClosed = 0.7,
-      this.cacheImageNum = 3,
+      // this.cacheImageNum = 3,
       this.scale = 1,
       this.cropHeight = 640,
       this.cropWidth = 480,
@@ -144,7 +144,7 @@ class FaceConfig {
         'headYaw': this.headYaw,
         'headRoll': this.headRoll,
         'eyeClosed': this.eyeClosed,
-        'cacheImageNum': this.cacheImageNum,
+        // 'cacheImageNum': this.cacheImageNum,
         'scale': this.scale,
         'cropHeight': this.cropHeight,
         'cropWidth': this.cropWidth,

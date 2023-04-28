@@ -37,7 +37,7 @@ public class BrightnessUtils {
         int nowBrightnessValue = 0;
         ContentResolver resolver = activity.getContentResolver();
         try {
-            nowBrightnessValue = Settings.System.getInt(
+            nowBrightnessValue = android.provider.Settings.System.getInt(
                     resolver, Settings.System.SCREEN_BRIGHTNESS);
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,10 +77,10 @@ public class BrightnessUtils {
      * 保存亮度设置状态
      */
     public static void saveBrightness(ContentResolver resolver, int brightness) {
-        Uri uri = Settings.System
+        Uri uri = android.provider.Settings.System
                 .getUriFor("screen_brightness");
 
-        Settings.System.putInt(resolver, "screen_brightness",
+        android.provider.Settings.System.putInt(resolver, "screen_brightness",
                 brightness);
         resolver.notifyChange(uri, null);
     }

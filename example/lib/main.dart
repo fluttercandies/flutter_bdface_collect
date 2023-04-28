@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_bdface_collect/flutter_bdface_collect.dart';
+import 'package:flutter_bdface_collect/model.dart';
 
 void main() {
   runApp(MyApp());
@@ -14,25 +17,20 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
   @override
   void initState() {
     super.initState();
     initPlatformState();
   }
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    try {
-      platformVersion = await FlutterBdfaceCollect.instance.platformVersion ??
-          'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-    if (!mounted) return;
 
-    setState(() {
-      _platformVersion = platformVersion;
-    });
+  Future<void> initPlatformState() async {
+    late String licenseId;
+    if (Platform.isAndroid) {
+      licenseId = 'bdfacecollectexample-face-android';
+    } else if (Platform.isIOS) {
+      licenseId = 'bdfacecollectexample-face-ios';
+    }
+    var err = await FlutterBdfaceCollect.instance.init(licenseId);
   }
 
   @override
@@ -42,8 +40,16 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: Container(
+          alignment: Alignment.center,
+          child: TextButton(
+            child: Text("初始化"),
+            onPressed: () {
+              var livenessTypeList = LivenessType.all;
+              var config = FaceConfig(livenessTypes: Set.from(livenessTypeList));
+              FlutterBdfaceCollect.instance.collect(config);
+            },
+          ),
         ),
       ),
     );

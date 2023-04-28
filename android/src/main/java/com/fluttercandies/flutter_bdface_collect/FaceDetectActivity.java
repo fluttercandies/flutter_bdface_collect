@@ -3,9 +3,9 @@
  */
 package com.fluttercandies.flutter_bdface_collect;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
@@ -29,13 +29,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.baidu.idl.face.platform.FaceConfig;
-import com.baidu.idl.face.platform.FaceEnvironment;
 import com.baidu.idl.face.platform.FaceSDKManager;
 import com.baidu.idl.face.platform.FaceStatusNewEnum;
 import com.baidu.idl.face.platform.IDetectStrategy;
 import com.baidu.idl.face.platform.IDetectStrategyCallback;
 import com.baidu.idl.face.platform.model.ImageInfo;
-import com.baidu.idl.face.platform.stat.Ast;
 import com.baidu.idl.face.platform.utils.APIUtils;
 import com.baidu.idl.face.platform.utils.Base64Utils;
 import com.fluttercandies.flutter_bdface_collect.utils.BrightnessUtils;
@@ -54,15 +52,15 @@ import java.util.Map;
 /**
  * 人脸采集接口
  */
-public class FaceDetectActivity extends BaseActivity implements
+public class FaceDetectActivity extends Activity implements
         SurfaceHolder.Callback,
         Camera.PreviewCallback,
         Camera.ErrorCallback,
         VolumeUtils.VolumeCallback,
-        IDetectStrategyCallback,
-        TimeoutDialog.OnTimeoutDialogClickListener {
+        IDetectStrategyCallback {
 
     public static final String TAG = FaceDetectActivity.class.getSimpleName();
+
     // View
     protected View mRootView;
     protected FrameLayout mFrameLayout;
@@ -100,8 +98,8 @@ public class FaceDetectActivity extends BaseActivity implements
     protected int mPreviewDegree;
     // 监听系统音量广播
     protected BroadcastReceiver mVolumeReceiver;
-    // 超时 Dialog
-    private TimeoutDialog mTimeoutDialog;
+    // 是否弹窗
+    protected boolean mHasShownTimeoutDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -134,8 +132,14 @@ public class FaceDetectActivity extends BaseActivity implements
         int w = mDisplayWidth;
         int h = mDisplayHeight;
 
+        // surfaceView使用屏幕分辨率的大小
+//        FrameLayout.LayoutParams cameraFL = new FrameLayout.LayoutParams(
+//                (int) (w * FaceDetectRoundView.SURFACE_RATIO), (int) (h * FaceDetectRoundView.SURFACE_RATIO),
+//                Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+        // surfaceView使用640*480的大小
         FrameLayout.LayoutParams cameraFL = new FrameLayout.LayoutParams(
-                (int) (w * FaceDetectRoundView.SURFACE_RATIO), (int) (h * FaceDetectRoundView.SURFACE_RATIO),
+                (int) (w * FaceDetectRoundView.SURFACE_RATIO * FaceDetectRoundView.RECT_RATIO),
+                (int) (w * FaceDetectRoundView.SURFACE_RATIO * FaceDetectRoundView.RECT_RATIO * 640.0f / 480.0f),
                 Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
 
         mSurfaceView.setLayoutParams(cameraFL);
@@ -154,12 +158,15 @@ public class FaceDetectActivity extends BaseActivity implements
         mSoundView = (ImageView) mRootView.findViewById(R.id.detect_sound);
         mSoundView.setImageResource(mIsEnableSound ?
                 R.mipmap.icon_titlebar_voice2 : R.drawable.collect_image_voice_selector);
-        mSoundView.setOnClickListener(v -> {
-            mIsEnableSound = !mIsEnableSound;
-            mSoundView.setImageResource(mIsEnableSound ?
-                    R.mipmap.icon_titlebar_voice2 : R.drawable.collect_image_voice_selector);
-            if (mIDetectStrategy != null) {
-                mIDetectStrategy.setDetectStrategySoundEnable(mIsEnableSound);
+        mSoundView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mIsEnableSound = !mIsEnableSound;
+                mSoundView.setImageResource(mIsEnableSound ?
+                        R.mipmap.icon_titlebar_voice2 : R.drawable.collect_image_voice_selector);
+                if (mIDetectStrategy != null) {
+                    mIDetectStrategy.setDetectStrategySoundEnable(mIsEnableSound);
+                }
             }
         });
         mTipsTopView = (TextView) mRootView.findViewById(R.id.detect_top_tips);
@@ -184,12 +191,14 @@ public class FaceDetectActivity extends BaseActivity implements
     @Override
     public void onResume() {
         super.onResume();
-        setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        mVolumeReceiver = VolumeUtils.registerVolumeReceiver(this, this);
-        if (mFaceDetectRoundView != null) {
-            mFaceDetectRoundView.setTipTopText("请将脸移入取景框");
+        if (!mHasShownTimeoutDialog) {
+            setVolumeControlStream(AudioManager.STREAM_MUSIC);
+            mVolumeReceiver = VolumeUtils.registerVolumeReceiver(this, this);
+            if (mFaceDetectRoundView != null) {
+                mFaceDetectRoundView.setTipTopText("请将脸移入取景框");
+            }
+            startPreview();
         }
-        startPreview();
     }
 
     @Override
@@ -265,6 +274,11 @@ public class FaceDetectActivity extends BaseActivity implements
             mSurfaceHolder.addCallback(this);
         }
 
+        if (mCamera != null) {
+            CameraUtils.releaseCamera(mCamera);
+            mCamera = null;
+        }
+
         if (mCamera == null) {
             try {
                 mCamera = open();
@@ -283,6 +297,8 @@ public class FaceDetectActivity extends BaseActivity implements
         }
 
         mCameraParam.setPictureFormat(PixelFormat.JPEG);
+
+        // 获取前置摄像头预览角度，为90度
         int degree = displayOrientation(this);
         mCamera.setDisplayOrientation(degree);
         // 设置后无效，camera.setDisplayOrientation方法有效
@@ -292,8 +308,13 @@ public class FaceDetectActivity extends BaseActivity implements
             mIDetectStrategy.setPreviewDegree(degree);
         }
 
+        // 以屏幕分辨率为基准选取分辨率
+//        Point point = CameraPreviewUtils.getBestPreview(mCameraParam,
+//                new Point(mDisplayWidth, mDisplayHeight));
+        // 以640 * 480为基准选取分辨率
         Point point = CameraPreviewUtils.getBestPreview(mCameraParam,
-                new Point(mDisplayWidth, mDisplayHeight));
+                new Point(640, 480));
+
         mPreviewWidth = point.x;
         mPreviewHight = point.y;
         // Preview 768,432
@@ -344,8 +365,18 @@ public class FaceDetectActivity extends BaseActivity implements
         }
     }
 
+    /**
+     * 获取摄像头预览角度
+     *
+     * @param context 当前上下文
+     * @return
+     */
     private int displayOrientation(Context context) {
         WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        if (windowManager == null) {
+            return 90;
+        }
+
         int rotation = windowManager.getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
@@ -438,76 +469,8 @@ public class FaceDetectActivity extends BaseActivity implements
 
         if (status == FaceStatusNewEnum.OK) {
             mIsCompletion = true;
-            // saveAllImage(base64ImageCropMap, base64ImageSrcMap);
+            saveAllImage(base64ImageCropMap, base64ImageSrcMap);
         }
-        // 打点
-        Ast.getInstance().faceHit("detect");
-        if (status == FaceStatusNewEnum.OK && mIsCompletion) {
-            // 获取最优图片
-            getBestImage(base64ImageCropMap, base64ImageSrcMap);
-        } else if (status == FaceStatusNewEnum.DetectRemindCodeTimeout) {
-            if (mViewBg != null) {
-                mViewBg.setVisibility(View.VISIBLE);
-            }
-            showMessageDialog();
-        }
-    }
-
-    /**
-     * 获取最优图片
-     *
-     * @param imageCropMap 抠图集合
-     * @param imageSrcMap  原图集合
-     */
-    private void getBestImage(HashMap<String, ImageInfo> imageCropMap, HashMap<String, ImageInfo> imageSrcMap) {
-        // 获取加密方式
-        int secType = mFaceConfig.getSecType();
-        // 将抠图集合中的图片按照质量降序排序，最终选取质量最优的一张抠图图片
-        if (imageCropMap != null && imageCropMap.size() > 0) {
-            List<Map.Entry<String, ImageInfo>> list1 = new ArrayList<>(imageCropMap.entrySet());
-            Collections.sort(list1, (o1, o2) -> {
-                String[] key1 = o1.getKey().split("_");
-                String score1 = key1[2];
-                String[] key2 = o2.getKey().split("_");
-                String score2 = key2[2];
-                // 降序排序
-                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
-            });
-            if (secType == 0) {
-                FlutterBdfaceCollectPlugin.imageCropBase64 = list1.get(0).getValue().getBase64();
-            } else {
-                FlutterBdfaceCollectPlugin.imageCropBase64 = list1.get(0).getValue().getSecBase64();
-            }
-        }
-
-        // 将原图集合中的图片按照质量降序排序，最终选取质量最优的一张原图图片
-        if (imageSrcMap != null && imageSrcMap.size() > 0) {
-            List<Map.Entry<String, ImageInfo>> list2 = new ArrayList<>(imageSrcMap.entrySet());
-            Collections.sort(list2, (o1, o2) -> {
-                String[] key1 = o1.getKey().split("_");
-                String score1 = key1[2];
-                String[] key2 = o2.getKey().split("_");
-                String score2 = key2[2];
-                // 降序排序
-                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
-            });
-            if (secType == 0) {
-                FlutterBdfaceCollectPlugin.imageSrcBase64 = list2.get(0).getValue().getBase64();
-            } else {
-                FlutterBdfaceCollectPlugin.imageSrcBase64 = list2.get(0).getValue().getSecBase64();
-            }
-        }
-        setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE);
-        finish();
-    }
-
-    private void showMessageDialog() {
-        mTimeoutDialog = new TimeoutDialog(this);
-        mTimeoutDialog.setDialogListener(this);
-        mTimeoutDialog.setCanceledOnTouchOutside(false);
-        mTimeoutDialog.setCancelable(false);
-        mTimeoutDialog.show();
-        onPause();
     }
 
     private void onRefreshView(FaceStatusNewEnum status, String message) {
@@ -539,41 +502,45 @@ public class FaceDetectActivity extends BaseActivity implements
 
     // ----------------------------------------供调试用----------------------------------------------
     private void saveAllImage(HashMap<String, ImageInfo> imageCropMap, HashMap<String, ImageInfo> imageSrcMap) {
+        // 获取加密方式
+        int secType = mFaceConfig.getSecType();
         if (imageCropMap != null && imageCropMap.size() > 0) {
             List<Map.Entry<String, ImageInfo>> list1 = new ArrayList<>(imageCropMap.entrySet());
-            Collections.sort(list1, new Comparator<Map.Entry<String, ImageInfo>>() {
-
-                @Override
-                public int compare(Map.Entry<String, ImageInfo> o1,
-                                   Map.Entry<String, ImageInfo> o2) {
-                    String[] key1 = o1.getKey().split("_");
-                    String score1 = key1[2];
-                    String[] key2 = o2.getKey().split("_");
-                    String score2 = key2[2];
-                    // 降序排序
-                    return Float.valueOf(score2).compareTo(Float.valueOf(score1));
-                }
+            Collections.sort(list1, (o1, o2) -> {
+                String[] key1 = o1.getKey().split("_");
+                String score1 = key1[2];
+                String[] key2 = o2.getKey().split("_");
+                String score2 = key2[2];
+                // 降序排序
+                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
             });
-            setImageView1(list1);
+            if (secType == 0) {
+                FlutterBdfaceCollectPlugin.imageCropBase64 = list1.get(0).getValue().getBase64();
+            } else {
+                FlutterBdfaceCollectPlugin.imageCropBase64 = list1.get(0).getValue().getSecBase64();
+            }
+//            setImageView1(list1);
         }
 
         if (imageSrcMap != null && imageSrcMap.size() > 0) {
             List<Map.Entry<String, ImageInfo>> list2 = new ArrayList<>(imageSrcMap.entrySet());
-            Collections.sort(list2, new Comparator<Map.Entry<String, ImageInfo>>() {
-
-                @Override
-                public int compare(Map.Entry<String, ImageInfo> o1,
-                                   Map.Entry<String, ImageInfo> o2) {
-                    String[] key1 = o1.getKey().split("_");
-                    String score1 = key1[2];
-                    String[] key2 = o2.getKey().split("_");
-                    String score2 = key2[2];
-                    // 降序排序
-                    return Float.valueOf(score2).compareTo(Float.valueOf(score1));
-                }
+            Collections.sort(list2, (o1, o2) -> {
+                String[] key1 = o1.getKey().split("_");
+                String score1 = key1[2];
+                String[] key2 = o2.getKey().split("_");
+                String score2 = key2[2];
+                // 降序排序
+                return Float.valueOf(score2).compareTo(Float.valueOf(score1));
             });
-            setImageView2(list2);
+            if (secType == 0) {
+                FlutterBdfaceCollectPlugin.imageSrcBase64 = list2.get(0).getValue().getBase64();
+            } else {
+                FlutterBdfaceCollectPlugin.imageSrcBase64 = list2.get(0).getValue().getSecBase64();
+            }
+//            setImageView2(list2);
         }
+        setResult(FlutterBdfaceCollectPlugin.COLLECT_OK_CODE);
+        finish();
     }
 
     private void setImageView1(List<Map.Entry<String, ImageInfo>> list) {
@@ -596,24 +563,5 @@ public class FaceDetectActivity extends BaseActivity implements
             iv.setImageBitmap(bmp);
             mImageLayout2.addView(iv, new LinearLayout.LayoutParams(300, 300));
         }
-    }
-
-    @Override
-    public void onRecollect() {
-        if (mTimeoutDialog != null) {
-            mTimeoutDialog.dismiss();
-        }
-        if (mViewBg != null) {
-            mViewBg.setVisibility(View.GONE);
-        }
-        onResume();
-    }
-
-    @Override
-    public void onReturn() {
-        if (mTimeoutDialog != null) {
-            mTimeoutDialog.dismiss();
-        }
-        finish();
     }
 }

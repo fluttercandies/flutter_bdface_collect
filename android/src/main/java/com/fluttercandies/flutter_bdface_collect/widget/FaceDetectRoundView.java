@@ -34,6 +34,7 @@ public class FaceDetectRoundView extends View {
     public static final int PATH_SPACE = 16;
     public static final int PATH_SMALL_SPACE = 12;
     public static final int CIRCLE_LINE_WIDTH = 3;
+    public static final float RECT_RATIO = 0.9f;
 
     public static final int COLOR_BG = Color.parseColor("#FFFFFF");
     // public static final int COLOR_RECT = Color.parseColor("#FFFFFF");

@@ -28,9 +28,5 @@
         <meta-data
                 android:name="flutterEmbedding"
                 android:value="2"/>
-
-        <!--将com.baidu.idl.face.demo替换成您工程的包名-->
-        <provider android:authorities="com.baidu.idl.face.demo.liantian.ac.provider"
-                  android:name="com.baidu.liantian.LiantianProvider" android:exported="true"/>
     </application>
 </manifest>
