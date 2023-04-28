@@ -1,3 +1,10 @@
+## 1.1.5
+
+* UPDATE SDK to 4.1.5
+* FIX ios resource import
+* 更新SDK版本到 4.1.5
+* 整理ios层资源引用
+
 ## 1.1.4
 
 * Remove auto start in Android  
