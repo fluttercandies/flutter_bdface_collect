@@ -1,3 +1,8 @@
+## 1.1.6
+
+* UPDATE README.md
+* 更新README.md
+
 ## 1.1.5
 
 * UPDATE SDK to 4.1.5
