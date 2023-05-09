@@ -9,9 +9,9 @@ a baidu face offline collect plugin. Only Android and IOS platforms are supporte
 
 ## SDK Version
 | Platform | Version |
-|   ----   |   ----  |
-|  Android |   4.1   |
-|   iOS    |   4.1   |
+|   ----   |--------|
+|  Android | 4.1.5  |
+|   iOS    | 4.1.5  |
 
 ## Preparing for use
 
