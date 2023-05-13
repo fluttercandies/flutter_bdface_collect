@@ -138,14 +138,13 @@
     self.timeOutView.layer.cornerRadius = 7.5;
 
     // 图标资源Bundle
-    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
-    NSBundle *bdFaceAssetsBundle = [NSBundle bundleWithURL:[bundle URLForResource:@"BDFaceAssets" withExtension:@"bundle"]];
-
+    NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"BDFaceAssets" ofType:@"bundle"];
+    NSBundle *bdFaceAssetsBundle = [NSBundle bundleWithPath:path];
     // 超时的image
     _timeOutImageView = [[UIImageView alloc] init];
     _timeOutImageView.frame = CGRectMake((ScreenWidth-76) / 2, KScaleY(217.3), 76, 76);
 
-    _timeOutImageView.image = [UIImage imageNamed:@"icon_overtime" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil];
+    _timeOutImageView.image = [UIImage imageNamed:@"icon_overtime.png" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil];
 //     _timeOutImageView.image = [UIImage imageNamed:@"icon_overtime"];
 
     // 超时的label
@@ -245,7 +244,7 @@
     
     UIButton *backButton = [[UIButton alloc] init];
     backButton.frame = CGRectMake(23.3, 43.3, 20, 20);
-    [backButton setImage:[UIImage imageNamed:@"icon_titlebar_close" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil] forState:UIControlStateNormal];
+    [backButton setImage:[UIImage imageNamed:@"icon_titlebar_close.png" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil] forState:UIControlStateNormal];
 //     [backButton setImage:[UIImage imageNamed:@"icon_titlebar_close"] forState:UIControlStateNormal];
     [backButton addTarget:self action:@selector(closeAction) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:backButton];
@@ -254,8 +253,8 @@
     _voiceImageView = [[UIImageView alloc] init];
     _voiceImageView.frame = CGRectMake((ScreenWidth-22-20), 42.7, 22, 22);
     _voiceImageView.animationImages = [NSArray arrayWithObjects:
-                                       [UIImage imageNamed:@"icon_titlebar_voice1" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil],
-                                       [UIImage imageNamed:@"icon_titlebar_voice2" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil], nil];
+                                       [UIImage imageNamed:@"icon_titlebar_voice1.png" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil],
+                                       [UIImage imageNamed:@"icon_titlebar_voice2.png" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil], nil];
 //     _voiceImageView.animationImages = [NSArray arrayWithObjects:
 //                                        [UIImage imageNamed:@"icon_titlebar_voice1"],
 //                                        [UIImage imageNamed:@"icon_titlebar_voice2"], nil];
@@ -265,7 +264,7 @@
     if (soundMode.boolValue){
         [_voiceImageView startAnimating];
     } else {
-        _voiceImageView.image = [UIImage imageNamed:@"icon_titlebar_voice_close" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil];
+        _voiceImageView.image = [UIImage imageNamed:@"icon_titlebar_voice_close.png" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil];
 //         _voiceImageView.image = [UIImage imageNamed:@"icon_titlebar_voice_close"];
     }
     _voiceImageView.userInteractionEnabled = YES;
@@ -277,7 +276,7 @@
     UIImageView *logoImageView = [[UIImageView alloc] init];
     logoImageView.frame = CGRectMake(0, CGRectGetMaxY(self.view.frame) - 221, ScreenWidth, 221);
 
-    logoImageView.image = [UIImage imageNamed:@"bg_bottom_pattern" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil];
+    logoImageView.image = [UIImage imageNamed:@"bg_bottom_pattern.png" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil];
 //     logoImageView.image = [UIImage imageNamed:@"bg_bottom_pattern"];
     [self.view addSubview:logoImageView];
     
@@ -450,9 +449,9 @@
     if (soundMode.boolValue && _voiceImageView.animating) {
         [_voiceImageView stopAnimating];
             // 图标资源Bundle
-        NSBundle *bundle = [NSBundle bundleForClass:[self class]];
-        NSBundle *bdFaceAssetsBundle = [NSBundle bundleWithURL:[bundle URLForResource:@"BDFaceAssets" withExtension:@"bundle"]];
-        _voiceImageView.image = [UIImage imageNamed:@"icon_titlebar_voice_close" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil];
+        NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"BDFaceAssets" ofType:@"bundle"];
+        NSBundle *bdFaceAssetsBundle = [NSBundle bundleWithPath:path];
+        _voiceImageView.image = [UIImage imageNamed:@"icon_titlebar_voice_close.png" inBundle:bdFaceAssetsBundle compatibleWithTraitCollection:nil];
 //         _voiceImageView.image = [UIImage imageNamed:@"icon_titlebar_voice_close"];
         // 之前是开启的，点击后关闭
         [[NSUserDefaults standardUserDefaults] setObject:@(NO) forKey:@"SoundMode"];

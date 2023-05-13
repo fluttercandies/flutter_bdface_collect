@@ -16,7 +16,8 @@ a baidu face collect plugin. Only Android and IOS platforms are supported.
   s.static_framework = true
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
-  s.resource_bundles = {'BDFaceAssets' => ['Resource/BDFaceAssets.xcassets']}
+  s.resources           = ['BDFaceSDK/*.bundle']
+  s.resource_bundles = {'BDFaceAssets' => ['Resource/BDFaceAssets/*.png']}
   s.vendored_frameworks = 'BDFaceSDK/*.framework'
   # s.xcconfig = { 'OTHER_LDFLAGS' => '-ObjC' }
   s.libraries = ["c++"]
