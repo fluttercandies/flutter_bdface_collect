@@ -1,7 +1,12 @@
-## 1.1.6
+## 1.1.7
 
 * FIX crash on ios
 * 修复在ios平台崩溃问题
+
+## 1.1.6
+
+* UPDATE README.md
+* 更新README.md
 
 ## 1.1.5
 
