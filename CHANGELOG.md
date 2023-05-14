@@ -1,3 +1,8 @@
+## 1.1.8
+
+* FIx no result on iOS
+* 修复在ios无采集结果问题
+
 ## 1.1.7
 
 * FIX crash on ios
