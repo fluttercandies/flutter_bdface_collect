@@ -221,6 +221,7 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         // 设置 闭眼阈值
         config.setEyeClosedValue(eyeClosed.floatValue());
         // 设置 图片缓存数量
+        config.setCacheImageNum(3);
 //        config.setCacheImageNum(cacheImageNum);
         // 设置 原图缩放系数
         config.setScale(scale.floatValue());
