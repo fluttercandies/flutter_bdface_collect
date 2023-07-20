@@ -67,7 +67,7 @@
     NSNumber* enlargeRatio = faceConfigMap[@"enlargeRatio"];
     NSNumber* faceFarRatio = faceConfigMap[@"faceFarRatio"];
 //    NSNumber* faceClosedRatio = faceConfigMap[@"faceClosedRatio"];
-    NSNumber* sund = faceConfigMap[@"sund"];
+    NSNumber* sound = faceConfigMap[@"sound"];
     NSNumber* livenessRandom = faceConfigMap[@"livenessRandom"];
     NSNumber* secType = faceConfigMap[@"secType"];
     NSArray* livenessTypes = faceConfigMap[@"livenessTypes"];
@@ -117,7 +117,7 @@
     BDFaceBaseViewController* lvc;
     if (livenessTypes.count > 0){
         // 设置是否开启提示音
-        [[IDLFaceLivenessManager sharedInstance] setEnableSound:sund.boolValue];
+        [[IDLFaceLivenessManager sharedInstance] setEnableSound:sound.boolValue];
         NSMutableArray* liveActionArray = [NSMutableArray new];
         for (NSString *typeStr in livenessTypes) {
             if ([typeStr isEqualToString:@"Eye"]){
@@ -139,7 +139,7 @@
         lvc = lvc2;
     } else {
         // 设置是否开启提示音
-        [[IDLFaceDetectionManager sharedInstance] setEnableSound:sund.boolValue];
+        [[IDLFaceDetectionManager sharedInstance] setEnableSound:sound.boolValue];
         lvc = [[BDFaceDetectionViewController alloc] init];
     }
     lvc.completion = ^(FaceCropImageInfo* bestImage){

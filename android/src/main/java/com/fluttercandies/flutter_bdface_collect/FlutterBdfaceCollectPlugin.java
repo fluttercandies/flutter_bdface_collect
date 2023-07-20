@@ -175,12 +175,12 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         @SuppressWarnings("unchecked")
         List<String> livenessTypes = (List<String>) argumentsMap.get("livenessTypes");
         Boolean livenessRandom = (Boolean) argumentsMap.get("livenessRandom");
-        Boolean sund = (Boolean) argumentsMap.get("sund");
+        Boolean sound = (Boolean) argumentsMap.get("sound");
         assert minFaceSize != null && notFace != null && brightness != null;
         assert brightnessMax != null && blurness != null && occlusionLeftEye != null;
         assert occlusionRightEye != null && occlusionChin != null;
 //        assert occlusionRightEye != null && occlusionChin != null && cacheImageNum != null;
-        assert occlusionNose != null && occlusionMouth != null && eyeClosed != null && sund != null;
+        assert occlusionNose != null && occlusionMouth != null && eyeClosed != null && sound != null;
         assert occlusionLeftContour != null && occlusionRightContour != null && secType != null;
         assert headPitch != null && headYaw != null && headRoll != null;
         assert scale != null && cropHeight != null && cropWidth != null;
@@ -236,7 +236,7 @@ public class FlutterBdfaceCollectPlugin implements FlutterPlugin, MethodCallHand
         // 设置 加密类型，0：Base64加密，上传时image_sec传false；1：百度加密文件加密，上传时image_sec传true
         config.setSecType(secType);
         // 设置 开启提示音
-        config.setSound(sund);
+        config.setSound(sound);
         // 检测超时设置
         config.setTimeDetectModule(FaceEnvironment.TIME_DETECT_MODULE);
         // 设置 动作活体是否随机
